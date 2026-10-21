@@ -1,6 +1,7 @@
 import type { RankingData } from "@/lib/contracts";
 import { fmtScore, HUB_SIZE } from "@/lib/format";
 import { PillarKey } from "./pillar";
+import { RankingPillarBars } from "./pillar-charts";
 import { DataTable, EvidenceTitle, Muted, Td, Th, Tr } from "./table";
 
 const PILLAR_LABEL = { overall: "Investment Opportunity Score", momentum: "Demand Momentum", pressure: "Capacity Pressure", scale: "Market Scale" };
@@ -21,6 +22,7 @@ export function RankingEvidence({ data }: { data: RankingData }) {
           </>
         }
       />
+      <RankingPillarBars data={data} />
       <DataTable caption={`Top ${data.ranked.length} by ${data.pillar === "overall" ? "score" : PILLAR_LABEL[data.pillar]} · Pillar scores M / P / S`}>
         <thead>
           <tr>

@@ -1,6 +1,7 @@
 import type { ScorecardData } from "@/lib/contracts";
 import { fmtScore, fmtValue, HUB_SIZE } from "@/lib/format";
 import { PillarKey } from "./pillar";
+import { ScorecardPillarChart } from "./pillar-charts";
 import { DataTable, EvidenceTitle, Muted, Td, Th, Tr } from "./table";
 
 export function ScorecardEvidence({ data }: { data: ScorecardData }) {
@@ -33,6 +34,7 @@ export function ScorecardEvidence({ data }: { data: ScorecardData }) {
         <p className="text-[12.5px] text-[var(--warn)]">Not ranked: {data.not_ranked_reason}</p>
       ) : null}
 
+      <ScorecardPillarChart pillars={data.pillars} />
       <DataTable caption="Metrics by Pillar (percentile across Primary Airports)">
         <thead>
           <tr>

@@ -1,5 +1,6 @@
 import type { RouteMixData, Share } from "@/lib/contracts";
 import { fmtInt, fmtPct } from "@/lib/format";
+import { RouteMixDonuts } from "./route-mix-donut";
 import { DataTable, EvidenceTitle, Muted, Td, Th, Tr } from "./table";
 
 function ShareRow({ label, share, strong }: { label: string; share: Share; strong?: boolean }) {
@@ -23,6 +24,7 @@ export function RouteMixEvidence({ data }: { data: RouteMixData }) {
         title={`Long-haul share (≥ ${fmtInt(data.min_miles)} mi)`}
         sub={`${data.airport_name} · ${data.window}`}
       />
+      <RouteMixDonuts data={data} />
       <DataTable caption="Long-haul share by variant · departures unless noted">
         <thead>
           <tr>
