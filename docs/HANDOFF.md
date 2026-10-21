@@ -150,7 +150,7 @@ Per SPEC §12. DESIGN.md runs ≤ 4 pages for a Deloitte reviewer and states pla
 
 ### P3-F — Deploy, outcome 1: **prepared** (owns `render.yaml`, deploy notes)
 
-1. Write the Render blueprint (free web service, Docker, health check `/api/health`) and the Neon `DATABASE_URL` wiring.
+1. Write the Render blueprint (free web service, Docker, health check `/api/health`) and the Neon `DATABASE_URL` wiring. Behind Render's proxy, the production server must take the client IP from `X-Forwarded-For` (e.g. uvicorn `--proxy-headers --forwarded-allow-ips='*'`). Otherwise the per-IP limit on failed access codes locks out every user at once. Add a test for it.
 2. Add the README deploy section.
 3. Push. Report `human_action_needed: ["run ./scripts/setup-wizard.sh stages 4–5"]`.
 
