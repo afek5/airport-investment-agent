@@ -38,6 +38,7 @@ async def test_g3_live_route_mix_and_grounding(real_snapshot):
     assert "3,000" in answer or "3000" in answer, "3,000 mi definition not stated"
     assert "cargo" in low and "hub" in low, "cargo-hub explanation missing"
     assert "data confidence" in low
+    assert answer.count("**Data Confidence") <= 1, "the answer is not shown exactly once"
 
     tool_payloads = [r.content if isinstance(r.content, (dict, str)) else r.content.model_dump() for r in returns]
     missing = ungrounded_numbers(answer, tool_payloads)

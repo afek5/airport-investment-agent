@@ -94,7 +94,7 @@ async def ask(gid: str, history: list | None = None) -> Run:
                     returns.setdefault(p.tool_name, []).append(_dump(p.content))
     payloads = [_dump(p.content) for m in every if isinstance(m, ModelRequest) for p in m.parts
                 if isinstance(p, ToolReturnPart)]
-    # What the chat shows: every text part of this turn (the answer, then the suggest_followups call).
+    # What the chat shows: the final message, after the turn's last tool call (suggest_followups).
     answer = answer_text(new)
     run = Run(gid=gid, question=QUESTIONS[gid], answer=answer, calls=calls, returns=returns,
               payloads=payloads, messages=every, cost=cost_usd(result.usage, model_id()), seconds=seconds,
@@ -109,6 +109,7 @@ def assert_common(run: Run, confidence: tuple[str, ...] = ("High", "Medium", "Lo
     """Every analytic answer: the four contract sections, follow-ups last, and grounded numbers."""
     for label in ("answer", "why", "assumptions", "data confidence"):
         assert label in run.low, f"{run.gid}: section '{label}' missing"
+    assert run.answer.count("**Data Confidence") <= 1, f"{run.gid}: the answer is not shown exactly once"
     assert run.tools_in_order and run.tools_in_order[-1] == "suggest_followups", \
         f"{run.gid}: suggest_followups must be the last tool call; got {run.tools_in_order}"
     dc = run.low[run.low.rindex("data confidence"):]

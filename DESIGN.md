@@ -43,7 +43,7 @@ Live Signals, fetched at question time: BTS traffic (SODA `r495-tyji`), DOT Airf
 
 ## 4. Scoring methodology
 
-**Percentiles.** Each of seven metrics becomes a **Percentile Score** across the 402 Primary Airports (`rank(pct=True) × 100`), so a 2M-passenger airport compares with a 40M one and outliers cannot stretch the scale.
+**Percentiles.** Each of seven metrics becomes a **Percentile Score** across the 402 Primary Airports (`rank(pct=True) × 100`), so a 2M-passenger airport compares with a 40M one, outliers cannot stretch the scale, and enplanements need no log transform (a rank is the same before and after one).
 
 | Pillar (default weight) | Metric (weight in Pillar) |
 |---|---|
@@ -87,7 +87,7 @@ The model **never computes a score or invents a number**:
 
 **Voice as a shell over the same agent (ADR 0004)**, so voice cannot disagree with text on a number. Designed, not built.
 
-**Hosting and guards.** Free Render plus Neon Postgres is cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) protect a public demo on a paid model. **Cut:** Evidence charts, live SoQL, the voice call, a slide deck, DB1B and ASPM data.
+**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render plus Neon blueprint is prepared but not deployed: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** Evidence charts, live SoQL, the voice call, a slide deck, DB1B and ASPM data.
 
 ## 7. Limitations and next steps
 

@@ -33,11 +33,11 @@ Only `ANTHROPIC_API_KEY` and `ACCESS_CODE` are required. The other variables in 
 | *(follow-up)* What if growth matters twice as much? | Re-ranking with overridden Pillar Weights |
 | How many flights left BOS for Europe last summer? | Ad-hoc read-only SQL over the Snapshot, labelled as such |
 
-## Live demo
+## Live demo: local-only
 
-The hosted URL is added here after deployment. The demo is gated by an access code, which is shared with reviewers separately; ask the author for it. The hosted demo stops answering for the day once it reaches its daily model budget.
+This build is local-only: there is no hosted URL. Run it with `docker compose up` as above, using your own `ANTHROPIC_API_KEY` and an `ACCESS_CODE` you choose in `.env`. The Render + Neon deploy below is prepared but optional and has not been run. A deployed copy would be gated by its access code and would stop answering for the day once it reaches its daily model budget.
 
-## Deploy (Render + Neon)
+## Deploy (optional: Render + Neon)
 
 Production is one free Render web service built from the repo's `Dockerfile`, with Postgres on Neon's free tier. [`render.yaml`](render.yaml) is the Render Blueprint: Docker runtime, free plan, health check on `/api/health`, and every variable from `.env.example`. Secrets are declared with `sync: false`, so Render asks for them when the Blueprint is applied and they never enter git. `./scripts/setup-wizard.sh` stages 4 (Neon) and 5 (Render) walk through it.
 

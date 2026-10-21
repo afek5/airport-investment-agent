@@ -2,7 +2,7 @@ from pydantic_ai.messages import ModelRequest, ModelResponse, RetryPromptPart, T
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from app.agent import ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, ToolError, agent, answer_text
+from app.agent import ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, FOLLOWUPS_MISSING_RETRY, ToolError, agent, answer_text
 from app.agent.prompt import SCOPING_STATEMENT, SYSTEM_PROMPT
 from tests.agent.scripted import (
     ALL_TOOLS_ANSWER, CORE_CALLS, _model, all_tools_model, scope_model, scripted_model,
@@ -158,17 +158,68 @@ async def test_answer_hidden_before_followups_is_written_again_as_the_final_mess
     assert [c.tool_name for c in _parts(result, ToolCallPart)] == ["route_mix", "suggest_followups"]
 
 
-async def test_delivered_answer_is_not_sent_back(real_snapshot):
-    """An answer that did arrive as text (here, before the follow-ups) is not asked for again."""
+async def test_answer_before_followups_is_not_shown_and_is_written_once_as_the_final_message(real_snapshot):
+    """The duplicated-answer defect: the model wrote the answer before suggest_followups, then again after.
+    Only the final message is shown, so the pre-tool copy is dropped; a final message without the answer is
+    sent back, and the chat shows the answer exactly once."""
+    def run(messages, info):
+        responses = [m for m in messages if isinstance(m, ModelResponse)]
+        if not responses:
+            return ModelResponse(parts=[TextPart(FULL_ANSWER), ToolCallPart("suggest_followups", FOLLOWUPS["args"])])
+        return ModelResponse(parts=[TextPart(FULL_ANSWER if _retried(messages) else "Anything else?")])
+
+    with agent.override(model=FunctionModel(run)):
+        result = await agent.run("long haul at ANC?")
+    retry = _parts(result, RetryPromptPart)
+    assert len(retry) == 1 and ANSWER_NOT_DELIVERED_RETRY in str(retry[0].content)
+    shown = answer_text(result.new_messages())
+    assert shown.count("**Data Confidence**") == 1
+    assert shown == "Anything else?\n\n" + FULL_ANSWER  # what the chat shows after the last tool call
+
+
+async def test_answer_after_followups_is_shown_once_without_a_retry(real_snapshot):
+    """The contract path: any text before suggest_followups is dropped and the final answer passes."""
     def run(messages, info):
         if not any(isinstance(m, ModelResponse) for m in messages):
             return ModelResponse(parts=[TextPart(FULL_ANSWER), ToolCallPart("suggest_followups", FOLLOWUPS["args"])])
-        return ModelResponse(parts=[TextPart("Anything else?")])
+        return ModelResponse(parts=[TextPart(FULL_ANSWER)])
 
     with agent.override(model=FunctionModel(run)):
         result = await agent.run("long haul at ANC?")
     assert not _parts(result, RetryPromptPart)
-    assert answer_text(result.new_messages()) == FULL_ANSWER + "\n\nAnything else?"
+    assert answer_text(result.new_messages()) == FULL_ANSWER
+
+
+async def test_analytic_answer_without_followups_is_sent_back_for_them(real_snapshot):
+    """Live G3 run 1: the model answered after route_mix and never called suggest_followups (SPEC §5:
+    called last in every analytic answer). The turn is sent back; the chat shows the answer once."""
+    def step(messages, info):
+        done = {p.tool_name for m in messages if isinstance(m, ModelRequest) for p in m.parts
+                if isinstance(p, ToolReturnPart)}
+        if "route_mix" not in done:
+            return "tool", {"name": "route_mix", "args": {"iata": "ANC"}}
+        if _retried(messages) and "suggest_followups" not in done:
+            return "tool", FOLLOWUPS
+        return "text", FULL_ANSWER
+
+    with agent.override(model=_model(step)):
+        result = await agent.run("long haul at ANC?")
+    retry = _parts(result, RetryPromptPart)
+    assert len(retry) == 1 and FOLLOWUPS_MISSING_RETRY in str(retry[0].content)
+    assert [c.tool_name for c in _parts(result, ToolCallPart)] == ["route_mix", "suggest_followups"]
+    assert answer_text(result.new_messages()) == FULL_ANSWER
+
+
+async def test_a_turn_out_of_retries_keeps_its_answer(real_snapshot):
+    """A model that never calls suggest_followups still gets its answer through instead of an error."""
+    def step(messages, info):
+        if not any(isinstance(m, ModelResponse) for m in messages):
+            return "tool", {"name": "route_mix", "args": {"iata": "ANC"}}
+        return "text", FULL_ANSWER
+
+    with agent.override(model=_model(step)):
+        result = await agent.run("long haul at ANC?")
+    assert result.output == FULL_ANSWER and len(_parts(result, RetryPromptPart)) == 2
 
 
 async def test_clarifying_question_after_a_tool_is_not_sent_back(real_snapshot):

@@ -9,7 +9,7 @@ import { MessageResponse } from "@/components/ai-elements/message";
 import { Composer, type ComposerHandle } from "@/components/composer";
 import { ConfidenceBadge } from "@/components/evidence/evidence-meta";
 import { chatErrorMessage, saveConversation, type ConversationSummary } from "@/lib/api";
-import { evidenceOf, followupsOf, isToolPart, lowestConfidence, stepsOf, titleFrom, type Part } from "@/lib/parts";
+import { answerTextsOf, evidenceOf, followupsOf, isToolPart, lowestConfidence, stepsOf, titleFrom, type Part } from "@/lib/parts";
 import { useTimings } from "@/lib/timings";
 import { cn } from "@/lib/utils";
 import { MissionPanel } from "./mission-panel";
@@ -324,7 +324,7 @@ function AssistantMessage({
     .filter((p): p is Extract<Part, { type: "reasoning" }> => p.type === "reasoning")
     .map((p) => p.text)
     .join("\n\n");
-  const texts = message.parts.filter((p): p is Extract<Part, { type: "text" }> => p.type === "text");
+  const texts = answerTextsOf(message);
   const evidence = evidenceOf(message);
   const level = lowestConfidence(evidence);
   const hasText = texts.some((t) => t.text.trim());

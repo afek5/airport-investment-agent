@@ -135,6 +135,20 @@ export function lowestConfidence(entries: EvidenceEntry[]): ConfidenceLevel | nu
   return lowest;
 }
 
+/**
+ * The answer the chat shows: the text parts after the message's last tool call (its final message).
+ * Text the model writes before a tool call is not the answer (SPEC §6); showing it too is how a whole
+ * answer appeared twice, once before suggest_followups and again after it (backend app/agent/answer.py).
+ */
+export function answerTextsOf(message: UIMessage): Extract<Part, { type: "text" }>[] {
+  let out: Extract<Part, { type: "text" }>[] = [];
+  for (const p of message.parts) {
+    if (isToolPart(p)) out = [];
+    else if (p.type === "text") out.push(p);
+  }
+  return out;
+}
+
 export function textOf(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<Part, { type: "text" }> => p.type === "text")

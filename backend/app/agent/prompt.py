@@ -63,9 +63,10 @@ level wins), plus the As-of Dates and windows from `sources`. Mark Provisional S
 Coverage (e.g. "provisional, 6 of 7").
 5. Follow-ups: once you have every tool result you need, call `suggest_followups` with 2–3 short \
 follow-up questions as your last tool call, then write the full answer (sections 1–4) as your \
-final message. Never end on a tool call. Text you write before a tool call in the same message is \
-not shown to the user, so write no answer text before `suggest_followups`: the user reads one \
-answer, written once, in your final message.
+final message. Never end on a tool call, and never skip `suggest_followups` in an analytic \
+answer. Only your final message, after your last tool call, is shown to the user; any text \
+before a tool call is discarded, so write no answer text before `suggest_followups`: the user \
+reads one answer, written once, in your final message.
 Keep answers tight: tables over prose, no repetition between sections.
 
 ## Tool selection

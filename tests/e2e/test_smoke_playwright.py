@@ -78,6 +78,7 @@ def test_access_ask_g3_evidence_and_reload_persists(browser):
     text = answer.inner_text()
     assert "3,000" in text or "3000" in text, "the Long-haul definition is not in the answer"
     assert "cargo" in text.lower()
+    assert text.lower().count("assumptions & scope") <= 1, "the answer is shown twice"
 
     # 3. The Mission panel opened by itself on desktop and renders the route_mix Evidence card.
     panel = page.get_by_test_id("mission-panel")

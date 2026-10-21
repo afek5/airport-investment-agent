@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chatErrorMessage, messageFromBody } from "@/lib/api";
 import { fmtNum, fmtPct, fmtSigned, fmtValue } from "@/lib/format";
-import { evidenceOf, followupsOf, lowestConfidence, parseOutput, stepsOf, titleFrom } from "@/lib/parts";
+import { answerTextsOf, evidenceOf, followupsOf, lowestConfidence, parseOutput, stepsOf, titleFrom } from "@/lib/parts";
 import routeMix from "./fixtures/route_mix.json";
 import unmet from "./fixtures/unmet_demand.json";
 import { assistant, toolPart, user } from "./helpers";
@@ -26,6 +26,20 @@ describe("parts", () => {
     toolPart("suggest_followups", "t4", "output-available", { questions: ["What about cargo?", "Compare with SEA"] }),
     { type: "text", text: "Answer" },
   ]);
+
+  it("shows only the final message: text before the last tool call is dropped, so no answer shows twice", () => {
+    const twice = assistant([
+      toolPart("rank_airports", "r1", "output-available", {}, {}),
+      { type: "text", text: "**Answer** draft before the follow-ups" },
+      toolPart("suggest_followups", "f1", "output-available", { questions: ["Q?"] }),
+      { type: "text", text: "**Answer** final" },
+    ]);
+    expect(answerTextsOf(twice).map((t) => t.text)).toEqual(["**Answer** final"]);
+    expect(answerTextsOf(msg).map((t) => t.text)).toEqual(["Answer"]);
+    expect(answerTextsOf(assistant([{ type: "text", text: "Which Springfield?" }])).map((t) => t.text)).toEqual([
+      "Which Springfield?",
+    ]);
+  });
 
   it("lists tool steps in order, without the follow-ups tool", () => {
     expect(stepsOf(msg).map((s) => [s.name, s.state])).toEqual([
