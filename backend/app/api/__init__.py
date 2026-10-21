@@ -7,7 +7,7 @@ from fastapi.responses import Response
 from pydantic_ai.ui.vercel_ai import VercelAIAdapter
 
 from app import snapshot
-from app.agent import agent
+from app.agent import USAGE_LIMITS, agent
 
 router = APIRouter(prefix="/api")
 
@@ -28,4 +28,4 @@ def health() -> dict:
 
 @router.post("/chat")
 async def chat(request: Request) -> Response:
-    return await VercelAIAdapter.dispatch_request(request, agent=agent, sdk_version=7)
+    return await VercelAIAdapter.dispatch_request(request, agent=agent, sdk_version=7, usage_limits=USAGE_LIMITS)

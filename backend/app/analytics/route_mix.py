@@ -95,13 +95,14 @@ def route_mix(iata: str, min_miles: int = LONG_HAUL_MILES, include_cargo: bool =
         ],
     )
 
-    headline = "all service classes (cargo-inclusive)" if include_cargo else "scheduled passenger flights (class F)"
+    dest_scope = "all service classes" if include_cargo else "scheduled passenger flights (class F) only"
     assumptions = [
         f"Long-haul Flight = a flight segment of {min_miles:,} statute miles or more (T-100 segment distance).",
-        f"Headline share counts {headline}, departures performed from {iata}.",
+        f"Headline share counts scheduled passenger flights (class F), departures performed from {iata}.",
         "Passenger-weighted share = passengers on long-haul segments / all class F passengers.",
         "Cargo-inclusive share counts every T-100 service class (F, G, L, P): a separately labelled variant.",
         "Zero-departure T-100 rows are dropped; carriers and aircraft types are aggregated.",
+        f"Top long-haul destinations list {dest_scope}.",
     ]
     caveats = ["T-100 reports flight segments: a multi-stop flight counts each leg separately."]
     if non_pax_share > CARGO_HEAVY_SHARE_PCT:

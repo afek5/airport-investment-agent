@@ -48,3 +48,11 @@ def test_route_mix_anc_sanity_bounds(real_snapshot):
     assert d.cargo_inclusive_departures.share_pct > d.passenger_departures.share_pct
     assert d.non_passenger_departure_share_pct > 25
     assert len(d.months) == 12
+
+
+def test_headline_is_always_class_f_and_stated_consistently(fixture_snapshot):
+    for include_cargo in (False, True):
+        r = route_mix("AAA", include_cargo=include_cargo)
+        assert r.data.passenger_departures.share_pct == 9.1
+        assert any("Headline share counts scheduled passenger flights (class F)" in a for a in r.assumptions)
+    assert any("list all service classes" in a for a in route_mix("AAA", include_cargo=True).assumptions)

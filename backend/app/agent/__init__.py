@@ -8,12 +8,15 @@ from typing import Annotated
 from pydantic import Field
 from pydantic_ai import Agent
 from pydantic_ai.models.anthropic import AnthropicModelSettings
+from pydantic_ai.usage import UsageLimits
 
 from app import analytics
 from app.agent.prompt import SYSTEM_PROMPT
 from app.contracts import FollowupsData, ResolveData, RouteMixData, ToolResult
 
 DEFAULT_MODEL = "anthropic:claude-sonnet-5-5"
+# SPEC §9: at most 12 model requests (tool round-trips) per answer.
+USAGE_LIMITS = UsageLimits(request_limit=12)
 
 
 def model_id() -> str:
@@ -28,7 +31,7 @@ agent = Agent(
     model_settings=AnthropicModelSettings(
         anthropic_cache_instructions=True,
         anthropic_cache_tool_definitions=True,
-        max_tokens=4096,
+        max_tokens=2048,  # SPEC §9 per-request cap
     ),
 )
 
@@ -46,7 +49,9 @@ def route_mix(iata: str, min_miles: int = 3000, include_cargo: bool = False) -> 
 
     Returns the scheduled-passenger (class F) departures share for segments ≥ min_miles (the
     headline), the passenger-weighted share, the cargo-inclusive share (all classes, a labelled
-    variant), a per-service-class breakdown and the top long-haul destinations.
+    variant), a per-service-class breakdown and the top long-haul destinations. All three shares
+    are always returned; include_cargo only widens the top-destinations list to all service
+    classes (leave it false unless the user asks about cargo destinations).
     """
     return analytics.route_mix(iata, min_miles=min_miles, include_cargo=include_cargo)
 
@@ -55,5 +60,6 @@ def route_mix(iata: str, min_miles: int = 3000, include_cargo: bool = False) -> 
 def suggest_followups(
     questions: Annotated[list[str], Field(min_length=2, max_length=3)],
 ) -> FollowupsData:
-    """Offer 2–3 short follow-up questions the user can click. Call this last in every analytic answer."""
+    """Offer 2–3 short follow-up questions the user can click. Call this as the last tool call of
+    every analytic answer, then write the answer text."""
     return FollowupsData(questions=questions)

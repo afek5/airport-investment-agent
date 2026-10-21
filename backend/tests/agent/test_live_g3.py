@@ -5,7 +5,7 @@ import os
 import pytest
 from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
-from app.agent import agent
+from app.agent import USAGE_LIMITS, agent
 from tests.grounding import ungrounded_numbers
 
 G3 = "What is the percentage of long haul flights out of Anchorage airport?"
@@ -15,13 +15,13 @@ pytestmark = pytest.mark.live
 
 @pytest.mark.skipif(not os.environ.get("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set")
 async def test_g3_live_route_mix_and_grounding(real_snapshot):
-    result = await agent.run(G3)
+    result = await agent.run(G3, usage_limits=USAGE_LIMITS)
     msgs = result.all_messages()
     calls = [p for m in msgs if isinstance(m, ModelResponse) for p in m.parts if isinstance(p, ToolCallPart)]
     returns = [p for m in msgs if isinstance(m, ModelRequest) for p in m.parts if isinstance(p, ToolReturnPart)]
     answer = result.output
     print("\n--- G3 answer ---\n" + answer)
-    print("usage:", result.usage())
+    print("usage:", result.usage)
 
     rm_calls = [c for c in calls if c.tool_name == "route_mix"]
     assert rm_calls, f"route_mix not called; calls={[c.tool_name for c in calls]}"
