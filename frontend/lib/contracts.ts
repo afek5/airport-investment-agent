@@ -264,7 +264,9 @@ export interface LiveDelay {
   reason?: string | null;
   min_delay?: string | null;
   max_delay?: string | null;
+  avg_delay?: string | null;
   trend?: string | null;
+  until?: string | null;
 }
 export interface LiveDelaysData {
   update_time: string | null;

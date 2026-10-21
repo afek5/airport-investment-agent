@@ -328,7 +328,9 @@ class LiveDelay(BaseModel):
     reason: str | None = None
     min_delay: str | None = None
     max_delay: str | None = None
+    avg_delay: str | None = Field(default=None, description="Ground Delay Programs report an average instead of a minimum")
     trend: str | None = None
+    until: str | None = Field(default=None, description="Ground Stop end time or closure reopen time, as the FAA states it")
 
 
 class LiveDelaysData(BaseModel):
