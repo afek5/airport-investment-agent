@@ -6,7 +6,7 @@ import pytest
 from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
 from app.agent import USAGE_LIMITS, agent, answer_text
-from tests.grounding import ungrounded_numbers
+from tests.grounding import ungrounded_numbers, ungrouped_counts
 
 G3 = "What is the percentage of long haul flights out of Anchorage airport?"
 
@@ -43,3 +43,4 @@ async def test_g3_live_route_mix_and_grounding(real_snapshot):
     tool_payloads = [r.content if isinstance(r.content, (dict, str)) else r.content.model_dump() for r in returns]
     missing = ungrounded_numbers(answer, tool_payloads)
     assert not missing, f"ungrounded numbers in answer: {missing}"
+    assert not ungrouped_counts(answer), f"counts without thousands separators: {ungrouped_counts(answer)}"

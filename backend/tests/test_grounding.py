@@ -1,4 +1,4 @@
-from tests.grounding import ungrounded_numbers
+from tests.grounding import ungrounded_numbers, ungrouped_counts
 
 RESULT = {"data": {"share_pct": 29.5, "total": 87249, "window": "12 months, Aug 2025–Jul 2026", "pax": 2699637}}
 
@@ -30,3 +30,10 @@ def test_malformed_digit_grouping_fails():
     assert ungrounded_numbers("rises to 30,516426", pool) == ["30,516426"]
     # Comma-separated short lists are not numbers with bad grouping.
     assert ungrounded_numbers("months 6,7,8 of 2026", [{"y": 2026}]) == []
+
+
+def test_ungrouped_counts_flag_bare_counts_but_not_years_or_labels():
+    text = ("| F | 37,243 | 1005 | 2.7% |\nL charter 2289, total 1234.5; in 2026 and FY2030, 2025 Q3, "
+            "rank 12, 30,516,426 and 3,000 miles, 999 flights")
+    assert ungrouped_counts(text) == ["1005", "2289", "1234.5"]
+    assert ungrouped_counts("FY2024 to FY2030, 2019–2025, 1,005 departures") == []

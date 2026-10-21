@@ -79,3 +79,15 @@ def ungrounded_numbers(answer: str, tool_results: list[Any]) -> list[str]:
     bad = malformed_numbers(answer)
     return bad + [tok for tok, v, d, s in answer_numbers(answer)
                   if not grounded(v, d, s, pool) and not any(tok in b for b in bad)]
+
+
+# A bare run of 4+ digits that is not part of a grouped number, a decimal tail or a label like FY2030.
+BARE = re.compile(r"(?<![\w.])(?<!\d,)\d{4,}(?:\.\d+)?(?!\d|,\d)")
+
+
+def ungrouped_counts(text: str) -> list[str]:
+    """Counts or amounts of 1,000 or more written without thousands separators ("1005"). Years 1900–2099
+    and labels glued to letters (FY2030, Q1) are not counts. Tool results arrive grouped (app.agent.display),
+    so a bare one means the model reformatted a figure."""
+    return [m.group(0) for m in BARE.finditer(text)
+            if not ("." not in m.group(0) and 1900 <= int(m.group(0)) <= 2099)]

@@ -23,7 +23,7 @@ from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, Tool
 from app import snapshot
 from app.agent import USAGE_LIMITS, agent, answer_text, model_id
 from app.api.guards import cost_usd
-from tests.grounding import ungrounded_numbers
+from tests.grounding import ungrounded_numbers, ungrouped_counts
 
 from . import recompute as rc
 
@@ -116,6 +116,8 @@ def assert_common(run: Run, confidence: tuple[str, ...] = ("High", "Medium", "Lo
     assert any(level.lower() in dc for level in confidence), f"{run.gid}: Data Confidence not in {confidence}"
     missing = ungrounded_numbers(run.answer, run.payloads)
     assert not missing, f"{run.gid}: ungrounded numbers in answer: {missing}"
+    bare = ungrouped_counts(run.answer)
+    assert not bare, f"{run.gid}: counts of 1,000 or more without thousands separators: {bare}"
 
 
 @pytest.fixture(autouse=True, scope="module")

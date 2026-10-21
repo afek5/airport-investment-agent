@@ -360,6 +360,10 @@ class PublicApiData(AdHocData):
     resource_id: str
     endpoint: str
     limit: int = Field(description="Rows requested after clamping to 1–500")
+    period_count: int | None = Field(default=None, description="Distinct periods (quarters, months or years) "
+                                     "in the returned rows; None when the rows carry no period columns")
+    periods: str | None = Field(default=None, description="The distinct periods and their span, e.g. "
+                                "'100 quarters, 2001 Q2–2026 Q1'; a count of periods, never of rows")
 
 
 # ───────────────────────────── UI-only ─────────────────────────────

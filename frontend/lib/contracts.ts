@@ -290,6 +290,10 @@ export interface PublicApiData extends AdHocData {
   resource_id: string;
   endpoint: string;
   limit: number;
+  /** Distinct periods in the returned rows (null when the rows carry no period columns). */
+  period_count?: number | null;
+  /** e.g. "100 quarters, 2001 Q2–2026 Q1": a count of periods, never of rows. */
+  periods?: string | null;
 }
 
 // UI-only

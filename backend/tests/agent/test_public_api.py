@@ -143,6 +143,9 @@ async def test_envelope_is_ad_hoc_medium_with_typed_rows_and_period(mock_live):
     src = r.sources[0]
     assert src.url == "https://data.transportation.gov/resource/tfrh-tu9e.json"
     assert src.as_of == "2026 Q1" and src.window == "3 quarters, 2025 Q3–2026 Q1"
+    assert r.data.row_count == 3 and r.data.period_count == 3 and r.data.periods == "3 quarters, 2025 Q3–2026 Q1"
+    assert "One row is one group of the query's GROUP BY columns (year,quarter). The result has 3 rows covering " \
+           "3 distinct quarters (2025 Q3–2026 Q1): one row per quarter." in r.assumptions
     assert any("never changes an Investment Opportunity Score" in c for c in r.caveats)
     assert any("DB1B 10% ticket sample" in c for c in r.caveats)
     # round-trips through the SPEC §5 envelope
@@ -228,3 +231,57 @@ async def test_agent_sends_bad_soql_back_to_the_model_as_a_retry(mock_live):
     out = next(p.content for m in result.all_messages() if isinstance(m, ModelRequest) for p in m.parts
                if isinstance(p, ToolReturnPart))
     assert out.ad_hoc and out.data.rows[0][2] == 345.59
+
+
+# ───────────────────────────── counts: rows vs periods ─────────────────────────────
+
+
+def _quarters(first: tuple[int, int], n: int) -> list[tuple[int, int]]:
+    y, q = first
+    out = []
+    for _ in range(n):
+        out.append((y, q))
+        y, q = (y + 1, 1) if q == 4 else (y, q + 1)
+    return out
+
+
+async def test_100_quarter_rows_state_100_rows_and_100_quarters(mock_live):
+    # The live answer once said "Window returned: 100 quarters" for 100 rows; the tool states both counts.
+    _, state = mock_live
+    rows = [{"year": str(y), "quarter": str(q), "avg_fare": "300.5"} for y, q in reversed(_quarters((2001, 2), 100))]
+    state["handler"] = lambda request: httpx.Response(200, json=rows)
+    r = await live.query_public_api("dot_airfare_pairs", select="year,quarter,avg(fare) AS avg_fare",
+                                    group="year,quarter", order="year DESC,quarter DESC", limit=100)
+    assert r.data.row_count == 100 and r.data.period_count == 100
+    assert r.data.periods == "100 quarters, 2001 Q2–2026 Q1"
+    assert any(a.endswith("The result has 100 rows covering 100 distinct quarters (2001 Q2–2026 Q1): one row per "
+                          "quarter.") for a in r.assumptions)
+
+
+async def test_several_rows_per_quarter_are_not_called_quarters(mock_live):
+    _, state = mock_live
+    rows = [{"year": "2025", "quarter": str(q), "carrier_lg": c, "fare": "300"} for q in (3, 4) for c in ("AA", "B6", "DL")]
+    state["handler"] = lambda request: httpx.Response(200, json=rows)
+    r = await live.query_public_api("dot_airfare_pairs", select="year,quarter,carrier_lg,fare",
+                                    where="airport_1='BOS'")
+    assert r.data.row_count == 6 and r.data.period_count == 2 and r.data.periods == "2 quarters, 2025 Q3–2025 Q4"
+    line = next(a for a in r.assumptions if a.startswith("One row is"))
+    assert line == ("One row is one airport-pair market in one quarter (Table 1a record). The result has 6 rows "
+                    "covering 2 distinct quarters (2025 Q3–2025 Q4), so one quarter can span several rows; count "
+                    "quarters from `periods`, rows from `row_count`.")
+
+
+async def test_months_and_no_period_columns(mock_live):
+    _, state = mock_live
+    rows = [{"origin_airport_code": "BOS", "reporting_month": f"2026-0{m}-01T00:00:00.000", "total_departures": "9000"}
+            for m in (3, 4)]
+    state["handler"] = lambda request: httpx.Response(200, json=rows)
+    r = await live.query_public_api("bts_airport_month", select="origin_airport_code,reporting_month,total_departures")
+    assert r.data.period_count == 2 and r.data.periods == "2 months, Mar 2026–Apr 2026"
+    assert any(a.startswith("One row is one origin airport in one month") for a in r.assumptions)
+
+    state["handler"] = lambda request: httpx.Response(200, json=[{"avg_fare": "312.4"}])
+    r = await live.query_public_api("dot_airfare_pairs", select="avg(fare) AS avg_fare")
+    assert r.data.row_count == 1 and r.data.period_count is None and r.data.periods is None
+    assert "One row is one aggregate over every matching record. The result has 1 row and no period columns, so " \
+           "it states no period count." in r.assumptions
