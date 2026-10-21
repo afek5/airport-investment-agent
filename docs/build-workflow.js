@@ -8,6 +8,7 @@ export const meta = {
     { title: 'P1', detail: 'ingest, analytics, agent/API, frontend in parallel' },
     { title: 'P2', detail: 'integration + golden/live/e2e verification' },
     { title: 'P3', detail: 'docs + deploy prepared (local prod container)' },
+    { title: 'Final', detail: 'whole-tree regression + TASK.md compliance audit' },
     { title: 'LIVE', detail: 'deploy verified live (after human wizard stages 4-5)' },
     { title: 'P4', detail: 'deferred: charts, query_public_api, voice, deck' },
   ],
@@ -76,8 +77,16 @@ ${JSON.stringify(report, null, 2)}
 
 pass = true only if every clause holds. List each failing clause concretely in failures, with what you observed.`
 
+const SPEND = `Spend: the human has a hard $5.00 budget left on the API key for the whole build. Every live run is metered by backend/tests/spend_cap.py against ~/.airport-agent/live_spend.json; check it with \`make spend\`. Spend sparingly: prefer offline tests (TestModel/FunctionModel), and target live runs with -k. Never edit, delete or reset the ledger. If the cap trips or the remaining budget is under $0.75, stop and report status "blocked".`
+
+const FIX_HINTS = {
+  P2: `Root-cause hint for ungrounded-number failures: the model mis-copies large integers (e.g. 30516426 → "30,516426"), and prompt rules alone have not stopped it. Fix it structurally so the model copies digit-grouped strings instead of formatting digits itself. An interrupted earlier fixer already started this and left uncommitted work in the tree: backend/app/agent/display.py (groups numbers ≥ 10,000 into strings before each model request), backend/tests/agent/test_display.py, and edits to backend/app/agent/__init__.py, prompt.py and tests/e2e/test_live_golden.py. Review it, finish it and keep what is sound. Other packages are running concurrently in the same tree (P3-E owns DESIGN.md and README.md; P3-F owns render.yaml, the Dockerfile and deploy notes), so don't edit those files. To prove the fix: run the G4 live test 3 times (-k g4), then the full chain make test && make test-live && make e2e once, and report each result.`,
+}
+
 const fixPrompt = (pkg, failures) => `You are the builder for package ${pkg} (see the "${pkg}" section of docs/HANDOFF.md). An independent verifier found these failures against its "Done when" criterion:
 ${failures.map(f => '- ' + f).join('\n')}
+${FIX_HINTS[pkg] ? '\n' + FIX_HINTS[pkg] + '\n' : ''}
+${SPEND}
 
 Fix each one at the root cause, re-run the checks that prove it, commit and push (afek5 only), and return the report (the HANDOFF §0 format).`
 
@@ -136,21 +145,44 @@ if (want('P1')) {
   if (!allPassed(rs)) return halt({ phase: 'P1', failed: rs.filter(r => !(r && r.verdict && r.verdict.pass)).map(r => r && r.pkg) })
 }
 
-// ── P2: needs every P1 package, so it runs after them ──
-if (want('P2')) {
-  phase('P2')
-  const r = await runPackage('P2', 'P2')
-  results.push(r)
-  if (!allPassed([r])) return halt({ phase: 'P2', package: r })
+// ── P2 and P3 together: P3's docs and deploy prep don't depend on P2's live-test fixes ──
+// Each package owns its files, and the Final phase re-checks the whole tree afterwards.
+if (want('P2') || want('P3')) {
+  const jobs = []
+  if (want('P2')) { phase('P2'); jobs.push(() => runPackage('P2', 'P2')) }
+  if (want('P3')) {
+    phase('P3')
+    for (const pkg of ['P3-E', 'P3-F']) jobs.push(() => runPackage(pkg, 'P3',
+      pkg === 'P3-F' ? 'This package is outcome 1 ("prepared") only. Its Done-when is the "P3-F — Deploy, outcome 1" section; the live URL is NOT part of it (that is the separate LIVE package). You cannot create accounts.' : ''))
+  }
+  const rs = await parallel(jobs)
+  results.push(...rs)
+  if (!allPassed(rs)) return halt({ phase: 'P2+P3', failed: rs.filter(r => !(r && r.verdict && r.verdict.pass)).map(r => r && r.pkg) })
 }
 
-// ── P3: docs and deploy prep in parallel ──
+// ── Final: whole-tree regression + assignment compliance audit, one fix round ──
 if (want('P3')) {
-  phase('P3')
-  const rs = await pipeline(['P3-E', 'P3-F'], pkg => runPackage(pkg, 'P3',
-    pkg === 'P3-F' ? 'This package is outcome 1 ("prepared") only. Its Done-when is the "P3-F — Deploy, outcome 1" section; the live URL is NOT part of it (that is the separate LIVE package). You cannot create accounts.' : ''))
-  results.push(...rs)
-  if (!allPassed(rs)) return halt({ phase: 'P3', failed: rs.filter(r => !(r && r.verdict && r.verdict.pass)).map(r => r && r.pkg) })
+  phase('Final')
+  const chainPrompt = `Final regression check for ~/Documents/HA, now that P2 and P3 ran concurrently. ${SPEND} From a clean tree on the latest commit, run make test && make e2e. Run make test-live once only if backend/app or tests/e2e changed after the last P2 verification; otherwise run just the G3 live test (-k g3). Then build the production image, run it locally in production mode against the compose Postgres, and check that the access screen loads and G3 answers through it. Also check: git status is clean, everything is pushed to afek5/airport-investment-agent, and no secrets or employer names are in tracked files. pass = true only if all hold.`
+  const auditPrompt = `Compliance audit for ~/Documents/HA. Read docs/brief/TASK.md and docs/SPEC.md, then check the built system clause by clause. ${SPEND} Read docs/examples.md, the transcripts from the verified live runs, as the main evidence of answer behaviour. Run the app (docker compose up) and ask, through /api/chat with the ACCESS_CODE from .env (never print secrets), only exam questions 1 and 4 plus one follow-up. Check: public APIs are used; the ranking is deterministic; reasoning is explained; follow-ups work; the chat UI works; assumptions, uncertainty and scoping are stated; DESIGN.md covers scoring methodology, key tradeoffs and where/how AI is used, in ≤ 4 pages, and says the score screens candidates rather than proving profitability; README quickstart is correct. Change nothing. pass = true only if every clause holds. List each gap concretely in failures.`
+  const checks = () => parallel([
+    () => agent(chainPrompt, { label: 'final:regression', phase: 'Final', schema: VERDICT }),
+    () => agent(auditPrompt, { label: 'final:audit', phase: 'Final', schema: VERDICT }),
+  ])
+  let vs = await checks()
+  let failures = vs.flatMap(v => v ? (v.pass ? [] : v.failures) : ['final check agent died'])
+  if (failures.length) {
+    log(`Final: ${failures.length} issue(s), one fix round`)
+    const fix = await agent(`You are the integration fixer for ~/Documents/HA. Final checks found these gaps against docs/brief/TASK.md, docs/SPEC.md and the HANDOFF done-when criteria:
+${failures.map(f => '- ' + f).join('\n')}
+
+${SPEND} Fix each one at the root cause (any path), re-run the checks that prove it, commit and push (afek5 only), and return the report (the HANDOFF §0 format).`, { label: 'final:fix', phase: 'Final', schema: REPORT })
+    results.push({ pkg: 'Final-fix', report: fix, verdict: { pass: true, failures: [], evidence: [] } })
+    vs = await checks()
+    failures = vs.flatMap(v => v ? (v.pass ? [] : v.failures) : ['final check agent died'])
+  }
+  results.push({ pkg: 'Final', report: { status: failures.length ? 'failed' : 'done', summary: failures.join(' | ') || 'regression + compliance green', human_action_needed: [], open_issues: failures }, verdict: { pass: !failures.length, failures, evidence: [] } })
+  if (failures.length) return halt({ phase: 'Final', failures })
 }
 
 // ── LIVE: only after the human finished setup-wizard stages 4-5 ──

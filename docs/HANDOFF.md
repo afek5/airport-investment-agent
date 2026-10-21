@@ -31,7 +31,7 @@ To resume or continue, run it again with a different `from` (e.g. `{"from": "P2"
 - a required public data source is down or has changed shape and no documented fallback in `docs/research/data-sources.md` covers it;
 - a secret or account is missing (`.env` key, gh afek5 token, Neon or Render);
 - a done-when criterion conflicts with SPEC;
-- live-test spend for a package would exceed ~$3;
+- live-test spend for a package would exceed ~$1.50, or the hard cap trips: every live run is metered against a **$5.00 total** in `~/.airport-agent/live_spend.json` (`backend/tests/spend_cap.py`, `make spend`). Never edit or reset that ledger;
 - the deploy passes 45 minutes.
 
 ## Ground rules (every package)

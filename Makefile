@@ -1,5 +1,5 @@
 # Airport Investment Intelligence Agent — common tasks. See README / docs/HANDOFF.md.
-.PHONY: dev test test-live e2e snapshot build up down
+.PHONY: dev test test-live e2e snapshot build up down spend
 
 UV_BACKEND = uv run --project backend
 
@@ -41,3 +41,7 @@ up:
 
 down:
 	docker compose down
+
+## spend: live API spend so far against the hard cap (backend/tests/spend_cap.py)
+spend:
+	cd backend && uv run python -m tests.spend_cap

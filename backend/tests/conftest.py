@@ -68,3 +68,7 @@ def real_snapshot():
         pytest.skip("real Snapshot not built (make snapshot)")
     snapshot.use_snapshot_dir(REAL_SNAPSHOT)
     yield REAL_SNAPSHOT
+
+
+# Hard cap on live spend (see tests/spend_cap.py).
+from tests.spend_cap import pytest_configure, pytest_runtest_setup, pytest_terminal_summary  # noqa: E402,F401
