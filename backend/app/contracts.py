@@ -247,29 +247,30 @@ class EvidenceItem(BaseModel):
 
 
 class ForecastGap(BaseModel):
+    # Counts are ints so they serialise without a trailing ".0" (the LLM mis-grouped digits of floats).
     from_fy: int
     to_fy: int
-    enplanements_from: float
-    enplanements_to: float
-    enplanements_abs: float
+    enplanements_from: int
+    enplanements_to: int
+    enplanements_abs: int
     enplanements_pct: float
-    ops_from: float | None = None
-    ops_to: float | None = None
-    ops_abs: float | None = None
+    ops_from: int | None = None
+    ops_to: int | None = None
+    ops_abs: int | None = None
     ops_pct: float | None = None
 
 
 class SpillRoute(BaseModel):
     dest: str
     months_over_threshold: int
-    low: float
-    high: float
+    low: int
+    high: int
 
 
 class SpillScenario(BaseModel):
     label: str = "Spill Scenario under assumed spill rates; not calibrated"
-    low: float
-    high: float
+    low: int
+    high: int
     parameters: list[str]
     top_routes: list[SpillRoute] = Field(default_factory=list)
 
