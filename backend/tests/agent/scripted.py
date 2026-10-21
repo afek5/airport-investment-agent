@@ -12,7 +12,9 @@ from __future__ import annotations
 import json
 from collections.abc import AsyncIterator, Callable
 
-from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import (
+    ModelMessage, ModelRequest, ModelResponse, TextPart, ThinkingPart, ToolCallPart, ToolReturnPart,
+)
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, DeltaToolCalls, FunctionModel
 
 Step = Callable[[list[ModelMessage], AgentInfo], tuple[str, str | dict]]
@@ -27,6 +29,8 @@ def _model(step: Step) -> FunctionModel:
         kind, payload = step(messages, info)
         if kind == "tool":
             return ModelResponse(parts=[ToolCallPart(payload["name"], payload["args"])])
+        if kind == "hidden+tool":  # Sonnet 5.5: text before a tool call returned as an empty thinking block
+            return ModelResponse(parts=[ThinkingPart(""), ToolCallPart(payload["name"], payload["args"])])
         return ModelResponse(parts=[TextPart(payload)])
 
     async def stream(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
@@ -51,7 +55,8 @@ def _g3_step(messages: list[ModelMessage], info: AgentInfo) -> tuple[str, str | 
     rm = next(r for r in _tool_returns(messages) if r.tool_name == "route_mix")
     content = rm.content if isinstance(rm.content, dict) else json.loads(rm.model_response_str())
     share = content["data"]["passenger_departures"]["share_pct"]
-    return "text", f"{share}% of scheduled passenger departures from ANC are Long-haul Flights (≥ 3,000 mi)."
+    return "text", (f"{share}% of scheduled passenger departures from ANC are Long-haul Flights (≥ 3,000 mi). "
+                    "Data Confidence: High.")
 
 
 def scripted_model() -> FunctionModel:
@@ -78,12 +83,15 @@ CORE_CALLS: list[tuple[str, dict]] = [
 ]
 
 
+ALL_TOOLS_ANSWER = "Done: every core tool answered. Data Confidence: High."
+
+
 def _all_tools_step(messages: list[ModelMessage], info: AgentInfo) -> tuple[str, str | dict]:
     n = len(_tool_returns(messages))
     if n < len(CORE_CALLS):
         name, args = CORE_CALLS[n]
         return "tool", {"name": name, "args": args}
-    return "text", "Done: every core tool answered."
+    return "text", ALL_TOOLS_ANSWER
 
 
 def all_tools_model() -> FunctionModel:

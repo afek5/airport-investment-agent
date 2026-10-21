@@ -3,6 +3,9 @@
 Core tools (SPEC §5): resolve_airports, rank_airports, airport_scorecard, compare_airports, route_mix,
 unmet_demand, live_traffic, od_demand, live_delays, query_snapshot, suggest_followups.
 The agent has no web, shell or write tools; query_snapshot is read-only DuckDB.
+
+An analytic answer is suggest_followups first, then the answer as the final message with no tool call after
+it; app.agent.answer says why the order matters and checks that the answer was delivered.
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from pydantic_ai.models.anthropic import AnthropicModelSettings
 from pydantic_ai.usage import UsageLimits
 
 from app import analytics, live
+from app.agent.answer import ANSWER_NOT_DELIVERED_RETRY, answer_text, validate  # noqa: F401 - re-exported
 from app.agent.display import GroupedNumbers
 from app.agent.prompt import SYSTEM_PROMPT
 from app.contracts import (
@@ -238,5 +242,9 @@ def suggest_followups(
     questions: Annotated[list[str], Field(min_length=2, max_length=3)],
 ) -> FollowupsData:
     """Offer 2–3 short follow-up questions the user can click. Call this as the last tool call of
-    every analytic answer, then write the answer text."""
+    every analytic answer, with no text before it, then write the answer text as your final message."""
     return FollowupsData(questions=questions)
+
+
+# A turn that used tools must deliver its answer as text (see app.agent.answer).
+agent.output_validator(validate)

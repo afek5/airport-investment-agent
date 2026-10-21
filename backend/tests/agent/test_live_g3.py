@@ -5,7 +5,7 @@ import os
 import pytest
 from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
-from app.agent import USAGE_LIMITS, agent
+from app.agent import USAGE_LIMITS, agent, answer_text
 from tests.grounding import ungrounded_numbers
 
 G3 = "What is the percentage of long haul flights out of Anchorage airport?"
@@ -19,7 +19,7 @@ async def test_g3_live_route_mix_and_grounding(real_snapshot):
     msgs = result.all_messages()
     calls = [p for m in msgs if isinstance(m, ModelResponse) for p in m.parts if isinstance(p, ToolCallPart)]
     returns = [p for m in msgs if isinstance(m, ModelRequest) for p in m.parts if isinstance(p, ToolReturnPart)]
-    answer = result.output
+    answer = answer_text(result.new_messages())
     print("\n--- G3 answer ---\n" + answer)
     print("usage:", result.usage)
 

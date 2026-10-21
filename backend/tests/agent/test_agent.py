@@ -1,9 +1,12 @@
-from pydantic_ai.messages import ModelRequest, ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelRequest, ModelResponse, RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from app.agent import CORE_TOOLS, ToolError, agent
+from app.agent import ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, ToolError, agent, answer_text
 from app.agent.prompt import SCOPING_STATEMENT, SYSTEM_PROMPT
-from tests.agent.scripted import CORE_CALLS, _model, all_tools_model, scope_model, scripted_model
+from tests.agent.scripted import (
+    ALL_TOOLS_ANSWER, CORE_CALLS, _model, all_tools_model, scope_model, scripted_model,
+)
 from tests.agent.stubs import stub_core_tools
 
 
@@ -33,12 +36,13 @@ async def test_every_core_tool_runs_and_returns_an_envelope(monkeypatch, real_sn
     assert calls["rank_airports"][0][1]["states"] == ["CT", "ME", "MA", "NH", "RI", "VT"]
     assert calls["compare_airports"][0][0][0] == ["LAX", "SNA"]
     assert calls["live_delays"][0][0][0] == ["LAX", "SNA"]
-    assert result.output == "Done: every core tool answered."
+    assert result.output == ALL_TOOLS_ANSWER
 
 
 async def test_test_model_calls_every_tool_with_generated_args(monkeypatch, real_snapshot):
     stub_core_tools(monkeypatch)
-    with agent.override(model=TestModel(call_tools=["suggest_followups", "live_delays", "rank_airports"])):
+    with agent.override(model=TestModel(call_tools=["suggest_followups", "live_delays", "rank_airports"],
+                                      custom_output_text=FULL_ANSWER)):
         result = await agent.run("hello")
     assert {r.tool_name for r in _parts(result, ToolReturnPart)} == {"suggest_followups", "live_delays",
                                                                        "rank_airports"}
@@ -123,3 +127,57 @@ async def test_every_core_tool_runs_on_the_real_snapshot(monkeypatch, real_snaps
     errors = {n: c.error for n, c in returns.items() if isinstance(c, ToolError)}
     assert not errors, errors
     assert not _parts(result, RetryPromptPart)
+
+
+FOLLOWUPS = {"name": "suggest_followups", "args": {"questions": ["Q1?", "Q2?"]}}
+FULL_ANSWER = "**Answer** 2.7%\n\n**Why** cargo hub\n\n**Assumptions & scope** F only\n\n**Data Confidence** High"
+
+
+def _retried(messages) -> bool:
+    return any(isinstance(p, RetryPromptPart) for m in messages if isinstance(m, ModelRequest) for p in m.parts)
+
+
+async def test_answer_hidden_before_followups_is_written_again_as_the_final_message(real_snapshot):
+    """The live G3 failure: the model wrote its answer before the suggest_followups call, the API returned
+    that text as an empty thinking block, and the final message was only "the answer is above". The turn
+    is sent back once, and the answer arrives as the final message."""
+    def step(messages, info):
+        done = {p.tool_name for m in messages if isinstance(m, ModelRequest) for p in m.parts
+                if isinstance(p, ToolReturnPart)}
+        if "route_mix" not in done:
+            return "tool", {"name": "route_mix", "args": {"iata": "ANC"}}
+        if "suggest_followups" not in done:
+            return "hidden+tool", FOLLOWUPS
+        return ("text", FULL_ANSWER) if _retried(messages) else ("text", "The answer is above.")
+
+    with agent.override(model=_model(step)):
+        result = await agent.run("long haul at ANC?")
+    retry = _parts(result, RetryPromptPart)
+    assert len(retry) == 1 and ANSWER_NOT_DELIVERED_RETRY in str(retry[0].content)
+    assert result.output == FULL_ANSWER
+    assert [c.tool_name for c in _parts(result, ToolCallPart)] == ["route_mix", "suggest_followups"]
+
+
+async def test_delivered_answer_is_not_sent_back(real_snapshot):
+    """An answer that did arrive as text (here, before the follow-ups) is not asked for again."""
+    def run(messages, info):
+        if not any(isinstance(m, ModelResponse) for m in messages):
+            return ModelResponse(parts=[TextPart(FULL_ANSWER), ToolCallPart("suggest_followups", FOLLOWUPS["args"])])
+        return ModelResponse(parts=[TextPart("Anything else?")])
+
+    with agent.override(model=FunctionModel(run)):
+        result = await agent.run("long haul at ANC?")
+    assert not _parts(result, RetryPromptPart)
+    assert answer_text(result.new_messages()) == FULL_ANSWER + "\n\nAnything else?"
+
+
+async def test_clarifying_question_after_a_tool_is_not_sent_back(real_snapshot):
+    """No suggest_followups call, so no analytic answer is expected: a clarifying question passes."""
+    def step(messages, info):
+        if not any(isinstance(m, ModelResponse) for m in messages):
+            return "tool", {"name": "resolve_airports", "args": {"query": "Springfield"}}
+        return "text", "Which Springfield did you mean?"
+
+    with agent.override(model=_model(step)):
+        result = await agent.run("Springfield airport?")
+    assert not _parts(result, RetryPromptPart) and result.output == "Which Springfield did you mean?"

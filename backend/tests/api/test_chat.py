@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from app import db
 from app.agent import CORE_TOOLS, agent
 from app.api import guards
-from tests.agent.scripted import all_tools_model, scripted_model
+from tests.agent.scripted import ALL_TOOLS_ANSWER, all_tools_model, scripted_model
 from tests.agent.stubs import stub_core_tools
 from tests.api.conftest import login, store_call
 
@@ -64,7 +64,7 @@ def test_chat_streams_tool_parts_for_every_core_tool(client: TestClient, monkeyp
     for name, out in outputs.items():
         assert ("questions" in out) if name == "suggest_followups" else {"data", "sources", "data_confidence"} <= set(out)
     assert not [e for e in evs if e["type"] in ("error", "tool-output-error")]
-    assert text_of(r.text).strip() == "Done: every core tool answered."
+    assert text_of(r.text).strip() == ALL_TOOLS_ANSWER
 
 
 def test_chat_logs_usage_with_tools_and_cost(client: TestClient):

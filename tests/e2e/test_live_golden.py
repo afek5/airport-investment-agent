@@ -18,10 +18,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
 from app import snapshot
-from app.agent import USAGE_LIMITS, agent, model_id
+from app.agent import USAGE_LIMITS, agent, answer_text, model_id
 from app.api.guards import cost_usd
 from tests.grounding import ungrounded_numbers
 
@@ -94,9 +94,8 @@ async def ask(gid: str, history: list | None = None) -> Run:
                     returns.setdefault(p.tool_name, []).append(_dump(p.content))
     payloads = [_dump(p.content) for m in every if isinstance(m, ModelRequest) for p in m.parts
                 if isinstance(p, ToolReturnPart)]
-    # What the chat shows: every text part of this turn (a model may write before its last tool call).
-    texts = [p.content for m in new if isinstance(m, ModelResponse) for p in m.parts if isinstance(p, TextPart)]
-    answer = "\n\n".join(t.strip() for t in texts if t.strip()) or result.output
+    # What the chat shows: every text part of this turn (the answer, then the suggest_followups call).
+    answer = answer_text(new)
     run = Run(gid=gid, question=QUESTIONS[gid], answer=answer, calls=calls, returns=returns,
               payloads=payloads, messages=every, cost=cost_usd(result.usage, model_id()), seconds=seconds,
               tools_in_order=[c.tool_name for c in calls])
