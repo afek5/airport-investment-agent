@@ -11,6 +11,9 @@ import re
 from typing import Any
 
 NUM = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(\s*%)?(?:\s*(billion|million|bn|B|M|k|thousand)\b)?")
+# A digit run broken by commas in the wrong places ("30,516426", "1,0005") is a mis-copied figure.
+MALFORMED = re.compile(r"(?<![\w.,])\d+(?:,\d+)+(?![\d,])")
+WELL_GROUPED = re.compile(r"\d{1,3}(?:,\d{3})+")
 SCALE = {"billion": 1e9, "bn": 1e9, "B": 1e9, "million": 1e6, "M": 1e6, "k": 1e3, "thousand": 1e3}
 
 
@@ -65,6 +68,14 @@ def grounded(value: float, decimals: int, scale: float, pool: list[float]) -> bo
     return False
 
 
+def malformed_numbers(text: str) -> list[str]:
+    """Comma-grouped numbers whose grouping is wrong; they can never count as grounded."""
+    return [m.group(0) for m in MALFORMED.finditer(text)
+            if not WELL_GROUPED.fullmatch(m.group(0)) and len(m.group(0).replace(",", "")) >= 4]
+
+
 def ungrounded_numbers(answer: str, tool_results: list[Any]) -> list[str]:
     pool = tool_numbers(tool_results)
-    return [tok for tok, v, d, s in answer_numbers(answer) if not grounded(v, d, s, pool)]
+    bad = malformed_numbers(answer)
+    return bad + [tok for tok, v, d, s in answer_numbers(answer)
+                  if not grounded(v, d, s, pool) and not any(tok in b for b in bad)]

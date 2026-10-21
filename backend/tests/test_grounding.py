@@ -22,3 +22,11 @@ def test_scale_words_and_summed_tool_values():
     assert ungrounded_numbers("3.47 billion lbs of freight", pool) == []
     # 16,234 + 8,409: the LLM added two tool values (SPEC §6 forbids it), so it is not grounded.
     assert ungrounded_numbers("24,643 cargo long-haul departures", pool) == ["24,643"]
+
+
+def test_malformed_digit_grouping_fails():
+    pool = [{"enplanements_to": 30516426}]
+    assert ungrounded_numbers("rises to 30,516,426 (FY2030)", pool) == []
+    assert ungrounded_numbers("rises to 30,516426", pool) == ["30,516426"]
+    # Comma-separated short lists are not numbers with bad grouping.
+    assert ungrounded_numbers("months 6,7,8 of 2026", [{"y": 2026}]) == []

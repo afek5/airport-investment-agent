@@ -112,14 +112,19 @@ def unmet_demand(iata: str) -> ToolResult[UnmetDemandData]:
     # Runway capacity: IFR vs VFR arrival-rate drop (hand-coded table, only some airports).
     cap = None
     if has_table(conn, "runway_capacity"):
-        cap = conn.execute("SELECT vfr_arrivals_hr, ifr_arrivals_hr, source_note FROM runway_capacity "
-                           "WHERE iata = ?", [code]).fetchone()
+        cur = conn.execute("SELECT * FROM runway_capacity WHERE iata = ?", [code])
+        row = cur.fetchone()
+        rec = dict(zip([d[0] for d in cur.description], row)) if row else {}
+        cap = (rec.get("vfr_arrivals_hr"), rec.get("ifr_arrivals_hr"), rec.get("source_note"),
+               rec.get("profile_year")) if rec else None
     if cap and cap[0]:
         vfr, ifr, note = float(cap[0]), float(cap[1]), cap[2]
+        # profile_year is optional (not a SPEC §3 minimum column); SFO and BOS use the 2019 editions.
+        year = str(int(cap[3])) if cap[3] is not None else "2014"
         drop = 100.0 * (vfr - ifr) / vfr
         evidence.append(EvidenceItem(
             key="ifr_arrival_drop", label=f"Arrival rate drop in bad weather (IFR {ifr:g}/hr vs VFR {vfr:g}/hr)",
-            value=r1(drop), unit="%", source=f"FAA Airport Capacity Profiles (2014): {note}", as_of="2014",
+            value=r1(drop), unit="%", source=f"FAA Airport Capacity Profile ({year}): {note}", as_of=year,
             strength=r1(min(100.0, drop * IFR_DROP_STRENGTH_PER_PCT))))
     else:
         caveats.append(f"{code} is not in the hand-coded runway capacity table, so no IFR vs VFR arrival-rate "
