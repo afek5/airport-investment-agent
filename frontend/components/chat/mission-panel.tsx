@@ -7,7 +7,7 @@ import { ToolStatus } from "@/components/ai-elements/tool";
 import { EvidenceCard } from "@/components/evidence";
 import { ConfidenceBadge } from "@/components/evidence/evidence-meta";
 import { fmtDuration } from "@/lib/format";
-import { argsSummary, evidenceOf, isToolPart, lowestConfidence, parseOutput, stepsOf, textOf, toolNameOf } from "@/lib/parts";
+import { adHocQuery, argsSummary, evidenceOf, isToolPart, lowestConfidence, parseOutput, stepsOf, textOf, toolNameOf } from "@/lib/parts";
 import { cn } from "@/lib/utils";
 
 type SectionKey = "progress" | "evidence" | "trace";
@@ -199,10 +199,7 @@ export function MissionPanel({
             <ol className="space-y-3" data-testid="trace-list">
               {traceParts.map((p) => {
                 const name = toolNameOf(p);
-                const sql =
-                  name === "query_snapshot" && p.input && typeof p.input === "object"
-                    ? String((p.input as { sql?: unknown }).sql ?? "")
-                    : "";
+                const sql = adHocQuery(name, p.input);
                 return (
                   <li key={p.toolCallId} className="space-y-1.5 rounded-[10px] border border-[var(--hairline)] p-3">
                     <div className="flex items-center gap-2 text-[12.5px]">

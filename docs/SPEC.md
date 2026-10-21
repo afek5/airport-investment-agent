@@ -133,7 +133,7 @@ Every tool returns the same envelope (Pydantic model `ToolResult`):
 | `od_demand(iata, top_n=10)` | **LIVE** DOT Airfare SODA `data.transportation.gov/resource/tfrh-tu9e.json` | O&D pax/day, fares, carrier share |
 | `live_delays(iatas?)` | **LIVE** FAA NAS Status XML | an empty result means "no active delay" |
 | `query_snapshot(sql)` | escape hatch: read-only SQL over Snapshot views | SELECT/WITH only (reject anything else via a parser check plus a DuckDB read-only connection), 200-row cap, 5 s timeout; the data dictionary is in the system prompt; `ad_hoc=true`, Data Confidence ≤ Medium; SQL shown in the trace |
-| `query_public_api(dataset, select?, where?, group?, order?, limit≤500)` | **deferred (after core)**: escape hatch for live SoQL | whitelist: `bts_airport_month` (r495-tyji), `dot_airfare_pairs` (tfrh-tu9e), `dot_airfare_city_pairs` (yj5y-b2ir); `ad_hoc=true` |
+| `query_public_api(dataset, select?, where?, group?, order?, limit≤500)` | **deferred (P4)**: escape hatch for live SoQL, used only when no core tool answers | whitelist: `bts_airport_month` (r495-tyji), `dot_airfare_pairs` (tfrh-tu9e), `dot_airfare_city_pairs` (yj5y-b2ir); clause bodies only (`$`, `&`, `;`, `#`, `\|>` refused), limit clamped to 1–500; live-client timeout/retry/cache; a Socrata 400 goes back to the model as a retry; `ad_hoc=true`, Data Confidence ≤ Medium; SoQL shown in the trace |
 | `suggest_followups(questions[2..3])` | UI renders clickable chips | called last in every analytic answer |
 
 Live tools: 8 s timeout, one retry, in-process TTL cache (15 min), and a graceful error envelope ("live source unavailable; answering from Snapshot as of …").

@@ -37,9 +37,10 @@ export const EVIDENCE_TOOLS = new Set([
   "od_demand",
   "live_delays",
   "query_snapshot",
+  "query_public_api",
 ]);
 
-export const LIVE_TOOLS = new Set(["live_traffic", "od_demand", "live_delays"]);
+export const LIVE_TOOLS = new Set(["live_traffic", "od_demand", "live_delays", "query_public_api"]);
 
 export type StepState = "running" | "done" | "error";
 
@@ -157,4 +158,17 @@ export function argsSummary(input: unknown): string {
     .filter(([, v]) => v !== null && v !== undefined)
     .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join(",") : typeof v === "object" ? JSON.stringify(v) : String(v)}`)
     .join(" ");
+}
+
+/** The ad-hoc query a tool call ran, for the Trace: query_snapshot's SQL, or query_public_api's dataset and SoQL. */
+export function adHocQuery(toolName: string, input: unknown): string {
+  if (!input || typeof input !== "object") return "";
+  const args = input as Record<string, unknown>;
+  if (toolName === "query_snapshot") return String(args.sql ?? "");
+  if (toolName !== "query_public_api") return "";
+  const lines = [`dataset: ${String(args.dataset ?? "")}`];
+  for (const k of ["select", "where", "group", "order", "limit"]) {
+    if (args[k] != null && args[k] !== "") lines.push(`$${k}=${String(args[k])}`);
+  }
+  return lines.join("\n");
 }

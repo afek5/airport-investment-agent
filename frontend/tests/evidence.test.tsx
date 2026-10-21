@@ -6,6 +6,7 @@ import { EvidenceCard, RENDERERS } from "@/components/evidence";
 import type { ToolResult } from "@/lib/contracts";
 import { EVIDENCE_TOOLS } from "@/lib/parts";
 import adHoc from "./fixtures/query_snapshot.json";
+import publicApi from "./fixtures/query_public_api.json";
 import compare from "./fixtures/compare_airports.json";
 import liveDelays from "./fixtures/live_delays.json";
 import liveTraffic from "./fixtures/live_traffic.json";
@@ -27,6 +28,7 @@ const FIXTURES: Record<string, ToolResult<unknown>> = {
   od_demand: od as ToolResult<unknown>,
   live_delays: liveDelays as ToolResult<unknown>,
   query_snapshot: adHoc as ToolResult<unknown>,
+  query_public_api: publicApi as ToolResult<unknown>,
 };
 
 const card = (name: string, result: ToolResult<unknown> = FIXTURES[name]) =>
@@ -222,6 +224,31 @@ describe("query_snapshot (G6, ad hoc)", () => {
     expect(within(el).getByText("Ad hoc")).toBeInTheDocument();
     expect(within(el).getByRole("table").querySelectorAll("tbody tr")).toHaveLength(adHoc.data.rows.length);
     expect(el).toHaveTextContent("29,691");
+  });
+});
+
+describe("query_public_api (live SoQL, ad hoc)", () => {
+  it("reuses the ad-hoc renderer with the dataset, the SoQL, the rows and the live + ad-hoc marks", () => {
+    card("query_public_api");
+    const el = screen.getByTestId("evidence-query_public_api");
+    expect(within(el).getByTestId("ad-hoc")).toBeInTheDocument();
+    expect(el).toHaveTextContent("Ad-hoc live query · dot_airfare_pairs");
+    expect(el).toHaveTextContent("tfrh-tu9e");
+    expect(el).toHaveTextContent("$group=year,quarter");
+    expect(within(el).getByText("Ad hoc")).toBeInTheDocument();
+    expect(within(el).getByText("Live Signal")).toBeInTheDocument();
+    const rows = within(el).getByRole("table").querySelectorAll("tbody tr");
+    expect(rows).toHaveLength(publicApi.data.rows.length);
+    expect(rows[0]).toHaveTextContent("2026");
+    expect(rows[0]).not.toHaveTextContent("2,026");
+    expect(rows[0]).toHaveTextContent("345.59");
+  });
+
+  it("names the requested limit when the rows were truncated", () => {
+    const r = clone(publicApi) as ToolResult<unknown> & { data: { truncated: boolean } };
+    r.data.truncated = true;
+    card("query_public_api", r);
+    expect(screen.getByTestId("ad-hoc")).toHaveTextContent("truncated at the 8-row limit");
   });
 });
 

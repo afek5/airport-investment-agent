@@ -2,7 +2,7 @@
 
 - `scripted_model()`: the G3 path: route_mix(ANC) → suggest_followups → an answer quoting the share.
 - `text_model(text)`: answers with fixed text and calls no tool.
-- `all_tools_model()`: calls every core tool once, in order, then answers.
+- `all_tools_model()`: calls every tool (core, then deferred) once, in order, then answers.
 - `scope_model()`: answers with the scoping statement when (and only when) the instructions it
   receives carry it, standing in for a compliant LLM on an off-topic request.
 """
@@ -15,7 +15,7 @@ from collections.abc import AsyncIterator, Callable
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, DeltaToolCalls, FunctionModel
 
-Step = Callable[[list[ModelMessage], AgentInfo], tuple[str, str | dict]]
+Step = Callable[[list[ModelMessage], AgentInfo], tuple[str, str | dict | list]]
 
 
 def _tool_returns(messages: list[ModelMessage]) -> list[ToolReturnPart]:
@@ -27,12 +27,16 @@ def _model(step: Step) -> FunctionModel:
         kind, payload = step(messages, info)
         if kind == "tool":
             return ModelResponse(parts=[ToolCallPart(payload["name"], payload["args"])])
+        if kind == "tools":  # parallel tool calls in one response
+            return ModelResponse(parts=[ToolCallPart(c["name"], c["args"]) for c in payload])
         return ModelResponse(parts=[TextPart(payload)])
 
     async def stream(messages: list[ModelMessage], info: AgentInfo) -> AsyncIterator[str | DeltaToolCalls]:
         kind, payload = step(messages, info)
         if kind == "tool":
             yield {0: DeltaToolCall(name=payload["name"], json_args=json.dumps(payload["args"]))}
+        elif kind == "tools":
+            yield {i: DeltaToolCall(name=c["name"], json_args=json.dumps(c["args"])) for i, c in enumerate(payload)}
         else:
             for i, word in enumerate(payload.split(" ")):
                 yield word if i == 0 else " " + word
@@ -76,13 +80,21 @@ CORE_CALLS: list[tuple[str, dict]] = [
     ("query_snapshot", {"sql": "SELECT count(*) AS n FROM airports"}),
     ("suggest_followups", {"questions": ["Why is BOS first?", "What if growth matters twice as much?"]}),
 ]
+# The deferred escape hatches (app.agent.DEFERRED_TOOLS), called after the core tools by the all-tools model.
+DEFERRED_CALLS: list[tuple[str, dict]] = [
+    ("query_public_api", {"dataset": "dot_airfare_pairs", "select": "year,quarter,avg(fare) AS avg_fare",
+                          "where": "airport_1='BOS' AND airport_2='LAX'", "group": "year,quarter", "limit": 8}),
+]
+ALL_CALLS = CORE_CALLS + DEFERRED_CALLS
 
 
 def _all_tools_step(messages: list[ModelMessage], info: AgentInfo) -> tuple[str, str | dict]:
     n = len(_tool_returns(messages))
-    if n < len(CORE_CALLS):
+    if n < len(CORE_CALLS) - 1:
         name, args = CORE_CALLS[n]
         return "tool", {"name": name, "args": args}
+    if n < len(ALL_CALLS):  # the last core call and the deferred ones in one parallel step (request_limit 12)
+        return "tools", [{"name": name, "args": args} for name, args in ALL_CALLS[n:]]
     return "text", "Done: every core tool answered."
 
 

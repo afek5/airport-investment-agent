@@ -165,4 +165,14 @@ avg_dep_delay_min.
 vfr_arrivals_hr, ifr_arrivals_hr, vfr_departures_hr, ifr_departures_hr, source_note.
 Only SELECT/WITH is allowed; results are capped at 200 rows. Aggregate in SQL (SUM, GROUP BY) so \
 the tool returns the totals you quote.
+
+## Live public-data escape hatch (`query_public_api`)
+Use it last, only when no core tool and no `query_snapshot` query over the Snapshot answers. Fares \
+and O&D market history are not in the Snapshot, so for them go straight to it: fare or O&D history \
+for a specific market across quarters (e.g. "average fare BOS–LAX by quarter"), city-pair markets, \
+or BTS airport-month figures newer or older than the Snapshot. Never use it for a score, \
+Ranking, route mix, Unmet Demand, delays or anything a core tool returns. Datasets and columns are in \
+the tool description; the airport-pair table lists a pair in either order, so match both. Aggregate \
+in SoQL (avg, sum, GROUP BY) so the result holds every figure you quote. Label the answer "ad hoc", \
+state the dataset and the quarters or months it returned, and keep Data Confidence at Medium or lower.
 """

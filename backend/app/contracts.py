@@ -352,8 +352,19 @@ class AdHocData(BaseModel):
     truncated: bool
 
 
+class PublicApiData(AdHocData):
+    """query_public_api: the ad-hoc rows of one whitelisted live SoQL query. `sql` holds the SoQL sent
+    (one SODA parameter per line) so the ad-hoc Evidence renderer and trace show it unchanged."""
+
+    dataset: Literal["bts_airport_month", "dot_airfare_pairs", "dot_airfare_city_pairs"]
+    resource_id: str
+    endpoint: str
+    limit: int = Field(description="Rows requested after clamping to 1–500")
+
+
 # ───────────────────────────── UI-only ─────────────────────────────
 
 
 class FollowupsData(BaseModel):
     questions: list[str]
+

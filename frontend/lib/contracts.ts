@@ -284,6 +284,14 @@ export interface AdHocData {
   truncated: boolean;
 }
 
+/** query_public_api: AdHocData whose `sql` holds the SoQL sent (one SODA parameter per line). */
+export interface PublicApiData extends AdHocData {
+  dataset: "bts_airport_month" | "dot_airfare_pairs" | "dot_airfare_city_pairs";
+  resource_id: string;
+  endpoint: string;
+  limit: number;
+}
+
 // UI-only
 export interface FollowupsData {
   questions: string[];
@@ -300,4 +308,5 @@ export interface ToolDataByName {
   od_demand: OdDemandData;
   live_delays: LiveDelaysData;
   query_snapshot: AdHocData;
+  query_public_api: PublicApiData;
 }
