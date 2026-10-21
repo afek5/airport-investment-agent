@@ -91,3 +91,24 @@ def ungrouped_counts(text: str) -> list[str]:
     so a bare one means the model reformatted a figure."""
     return [m.group(0) for m in BARE.finditer(text)
             if not ("." not in m.group(0) and 1900 <= int(m.group(0)) <= 2099)]
+
+
+COUNT_PHRASE = re.compile(r"\b(\d[\d,]*)\s+(?:distinct\s+)?(rows?|quarters?|months?)\b", re.IGNORECASE)
+
+
+def misstated_counts(text: str, row_counts: set[int], period_counts: set[int]) -> list[str]:
+    """Row and period counts the answer states differently from the tool (query_public_api).
+
+    "N rows" must be a row_count the tool returned. "N quarters/months" must be a period_count, or a
+    subset of the periods returned (e.g. "the latest 12 quarters" of 100), and never a row_count that
+    differs from every period_count (100 rows over 37 quarters called "100 quarters")."""
+    bad = []
+    for m in COUNT_PHRASE.finditer(text):
+        n, unit = int(m.group(1).replace(",", "")), m.group(2).lower()
+        if unit.startswith("row"):
+            ok = n in row_counts
+        else:
+            ok = n in period_counts or (bool(period_counts) and n < max(period_counts) and n not in row_counts)
+        if not ok:
+            bad.append(m.group(0))
+    return bad

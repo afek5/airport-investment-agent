@@ -5,13 +5,17 @@ Run only this one: cd backend && set -a && . ../.env && set +a && uv run pytest 
 """
 
 import os
-import re
 
 import pytest
-from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import (
+    ModelRequest,
+    ModelResponse,
+    ToolCallPart,
+    ToolReturnPart,
+)
 
 from app.agent import USAGE_LIMITS, agent, answer_text
-from tests.grounding import ungrounded_numbers, ungrouped_counts
+from tests.grounding import misstated_counts, ungrounded_numbers, ungrouped_counts
 
 Q = "What was the average fare BOS–LAX by quarter?"
 
@@ -50,12 +54,8 @@ async def test_fare_history_uses_query_public_api_and_is_grounded(real_snapshot)
     assert not missing, f"ungrounded numbers in answer: {missing}"
     assert not ungrouped_counts(answer), f"counts without thousands separators: {ungrouped_counts(answer)}"
 
-    # Counts are described as the tool states them: "N rows" is a row_count, "N quarters/months" a period_count.
+    # Counts are described as the tool states them: "N rows" is a row_count, "N quarters/months" a period count.
     row_counts = {c["data"]["row_count"] for c in content}
     period_counts = {c["data"].get("period_count") for c in content} - {None}
-    for m in re.finditer(r"\b(\d[\d,]*)\s+(?:distinct\s+)?(rows?|quarters?|months?)\b", answer, re.IGNORECASE):
-        n, unit = int(m.group(1).replace(",", "")), m.group(2).lower()
-        if unit.startswith("row"):
-            assert n in row_counts, f"'{m.group(0)}' is not a row_count the tool stated ({row_counts})"
-        else:
-            assert n in period_counts, f"'{m.group(0)}' is not a period count the tool stated ({period_counts})"
+    wrong = misstated_counts(answer, row_counts, period_counts)
+    assert not wrong, f"counts not as the tool stated them (rows {row_counts}, periods {period_counts}): {wrong}"

@@ -1,4 +1,4 @@
-from tests.grounding import ungrounded_numbers, ungrouped_counts
+from tests.grounding import misstated_counts, ungrounded_numbers, ungrouped_counts
 
 RESULT = {"data": {"share_pct": 29.5, "total": 87249, "window": "12 months, Aug 2025–Jul 2026", "pax": 2699637}}
 
@@ -37,3 +37,14 @@ def test_ungrouped_counts_flag_bare_counts_but_not_years_or_labels():
             "rank 12, 30,516,426 and 3,000 miles, 999 flights")
     assert ungrouped_counts(text) == ["1005", "2289", "1234.5"]
     assert ungrouped_counts("FY2024 to FY2030, 2019–2025, 1,005 departures") == []
+
+
+def test_misstated_counts_rows_versus_periods():
+    live = ("The table shows the most recent 12 quarters. The query returned 100 quarters, 2001 Q2 to 2026 Q1. "
+            "The query returned the first 100 rows.")
+    assert misstated_counts(live, row_counts={100}, period_counts={100}) == []
+    # 100 rows over 37 distinct quarters: calling them "100 quarters" is the defect.
+    assert misstated_counts("Window returned: 100 quarters", row_counts={100}, period_counts={37}) == ["100 quarters"]
+    assert misstated_counts("It returned 37 quarters in 120 rows", {100}, {37}) == ["120 rows"]
+    assert misstated_counts("over 40 quarters", {100}, {37}) == ["40 quarters"]
+    assert misstated_counts("5 quarters", {5}, set()) == ["5 quarters"]
