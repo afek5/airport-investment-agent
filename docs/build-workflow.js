@@ -155,11 +155,12 @@ if (want('P1')) {
 // Each package owns its files, and the Final phase re-checks the whole tree afterwards.
 if (want('P2') || want('P3')) {
   const jobs = []
-  if (want('P2')) { phase('P2'); jobs.push(() => runPackage('P2', 'P2')) }
+  if (want('P2')) { phase('P2'); jobs.push(() => runPackage('P2', 'P2', 'P2 was already built and committed (71ae160); a verifier then failed it. Treat this as finishing P2 so its done-when passes.\n' + FIX_EXTRA.P2)) }
   if (want('P3')) {
     phase('P3')
+    const resumed = 'An interrupted earlier builder for this package left uncommitted work in your owned paths (git status shows it). Review it, continue from it, and commit it. P2 is being finished concurrently in backend/app/agent and tests/e2e, so leave those files alone.\n' + SPEND
     for (const pkg of ['P3-E', 'P3-F']) jobs.push(() => runPackage(pkg, 'P3',
-      pkg === 'P3-F' ? 'This package is outcome 1 ("prepared") only. Its Done-when is the "P3-F — Deploy, outcome 1" section; the live URL is NOT part of it (that is the separate LIVE package). You cannot create accounts.' : ''))
+      (pkg === 'P3-F' ? 'This package is outcome 1 ("prepared") only. Its Done-when is the "P3-F — Deploy, outcome 1" section; the live URL is NOT part of it (that is the separate LIVE package). You cannot create accounts.\n' : '') + resumed))
   }
   const rs = await parallel(jobs)
   results.push(...rs)
