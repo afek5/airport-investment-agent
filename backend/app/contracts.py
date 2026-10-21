@@ -107,6 +107,9 @@ class ServiceClassRow(BaseModel):
     long_haul_departures: int
     passengers: int
     freight_lbs: int
+    share_of_departures_pct: float = Field(description="This class's departures / all departures from the airport")
+    long_haul_share_pct: float = Field(description="This class's long-haul departures / this class's departures")
+    share_of_long_haul_pct: float = Field(description="This class's long-haul departures / all long-haul departures")
 
 
 class LongHaulDestination(BaseModel):
@@ -128,6 +131,10 @@ class RouteMixData(BaseModel):
     passenger_weighted: Share = Field(description="Class F passengers on segments ≥ min_miles / all class F passengers")
     cargo_inclusive_departures: Share = Field(description="All service classes (F, G, L, P): labelled variant")
     non_passenger_departure_share_pct: float = Field(description="Share of all departures that are not class F (cargo + non-scheduled)")
+    non_passenger_departures: Share = Field(description="Classes G, L and P together (everything except class F): long-haul / all their departures")
+    all_cargo_departures: Share = Field(description="All-cargo classes G and P together: long-haul / all their departures")
+    all_cargo_share_of_long_haul_pct: float = Field(description="Classes G + P long-haul departures / all long-haul departures (all classes)")
+    non_passenger_share_of_long_haul_pct: float = Field(description="Classes G + L + P long-haul departures / all long-haul departures (all classes)")
     by_service_class: list[ServiceClassRow]
     top_long_haul_destinations: list[LongHaulDestination]
 

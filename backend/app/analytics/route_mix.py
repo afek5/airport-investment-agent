@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.analytics.constants import (
-    CARGO_HEAVY_SHARE_PCT, LONG_HAUL_MILES, PASSENGER_CLASS, SERVICE_CLASS_LABELS,
+    ALL_CARGO_CLASSES, CARGO_HEAVY_SHARE_PCT, LONG_HAUL_MILES, PASSENGER_CLASS, SERVICE_CLASS_LABELS,
     T100_SOURCE_NAME, T100_URL, TOP_DESTINATIONS,
 )
 from app.contracts import (
@@ -60,6 +60,17 @@ def route_mix(iata: str, min_miles: int = LONG_HAUL_MILES, include_cargo: bool =
     f = cls.get(PASSENGER_CLASS, [0, 0, 0, 0, 0])
     all_deps = sum(v[0] for v in cls.values())
     all_lh = sum(v[1] for v in cls.values())
+    # Pre-computed group aggregates, so the agent never has to add rows together (SPEC §6).
+    non_pax = [c for c in cls if c != PASSENGER_CLASS]
+    cargo = [c for c in cls if c in ALL_CARGO_CLASSES]
+
+    def group_share(classes: list[str]) -> Share:
+        deps = sum(cls[c][0] for c in classes)
+        lh = sum(cls[c][1] for c in classes)
+        return Share(long_haul=lh, total=deps, share_pct=pct(lh, deps))
+
+    non_pax_share_obj = group_share(non_pax)
+    cargo_share_obj = group_share(cargo)
 
     dest_classes = list(cls) if include_cargo else [PASSENGER_CLASS]
     dests = conn.execute(
@@ -84,9 +95,16 @@ def route_mix(iata: str, min_miles: int = LONG_HAUL_MILES, include_cargo: bool =
         passenger_weighted=Share(long_haul=f[3], total=f[2], share_pct=pct(f[3], f[2])),
         cargo_inclusive_departures=Share(long_haul=all_lh, total=all_deps, share_pct=pct(all_lh, all_deps)),
         non_passenger_departure_share_pct=non_pax_share,
+        non_passenger_departures=non_pax_share_obj,
+        all_cargo_departures=cargo_share_obj,
+        all_cargo_share_of_long_haul_pct=pct(cargo_share_obj.long_haul, all_lh),
+        non_passenger_share_of_long_haul_pct=pct(non_pax_share_obj.long_haul, all_lh),
         by_service_class=[
             ServiceClassRow(service_class=c, label=SERVICE_CLASS_LABELS.get(c, "other"), departures=v[0],
-                            long_haul_departures=v[1], passengers=v[2], freight_lbs=v[4])
+                            long_haul_departures=v[1], passengers=v[2], freight_lbs=v[4],
+                            share_of_departures_pct=pct(v[0], all_deps),
+                            long_haul_share_pct=pct(v[1], v[0]),
+                            share_of_long_haul_pct=pct(v[1], all_lh))
             for c, v in cls.items()
         ],
         top_long_haul_destinations=[
@@ -101,6 +119,7 @@ def route_mix(iata: str, min_miles: int = LONG_HAUL_MILES, include_cargo: bool =
         f"Headline share counts scheduled passenger flights (class F), departures performed from {iata}.",
         "Passenger-weighted share = passengers on long-haul segments / all class F passengers.",
         "Cargo-inclusive share counts every T-100 service class (F, G, L, P): a separately labelled variant.",
+        "Non-passenger = classes G, L and P; all-cargo = classes G and P (L charters can carry passengers).",
         "Zero-departure T-100 rows are dropped; carriers and aircraft types are aggregated.",
         f"Top long-haul destinations list {dest_scope}.",
     ]
@@ -108,6 +127,8 @@ def route_mix(iata: str, min_miles: int = LONG_HAUL_MILES, include_cargo: bool =
     if non_pax_share > CARGO_HEAVY_SHARE_PCT:
         caveats.append(
             f"{iata} is cargo-heavy: {non_pax_share}% of all departures are not scheduled passenger flights, "
+            f"and all-cargo flights (classes G + P) make {cargo_share_obj.long_haul:,} of the "
+            f"{all_lh:,} long-haul departures ({data.all_cargo_share_of_long_haul_pct}%), "
             f"so the cargo-inclusive share ({data.cargo_inclusive_departures.share_pct}%) differs strongly "
             f"from the passenger share ({data.passenger_departures.share_pct}%)."
         )

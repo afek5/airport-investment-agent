@@ -104,6 +104,7 @@ Over the last 12 T-100 months, origin = airport:
 - share of departures_performed with distance ≥ min_miles (class F by default);
 - passenger-weighted share;
 - the cargo-inclusive departures share (all classes), always returned as a labelled variant;
+- pre-computed group aggregates (non-passenger G+L+P and all-cargo G+P long-haul counts and shares, and each class's share of departures and of long-haul departures), so the agent quotes them and never adds rows itself;
 - the top 10 long-haul destinations by departures.
 
 ### Congestion lens (`compare_airports(lens="congestion")`)

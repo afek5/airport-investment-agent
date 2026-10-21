@@ -41,6 +41,8 @@ export function RouteMixEvidence({ data }: { data: RouteMixData }) {
           <ShareRow label="Passenger flights (class F)" share={data.passenger_departures} unit="deps" />
           <ShareRow label="Passenger-weighted" share={data.passenger_weighted} unit="pax" />
           <ShareRow label="Cargo-inclusive (all classes)" share={data.cargo_inclusive_departures} unit="deps" />
+          <ShareRow label="Non-passenger (G, L, P)" share={data.non_passenger_departures} unit="deps" />
+          <ShareRow label="All-cargo (G, P)" share={data.all_cargo_departures} unit="deps" />
         </tbody>
       </table>
 
@@ -51,6 +53,7 @@ export function RouteMixEvidence({ data }: { data: RouteMixData }) {
             <th className={`${th} text-left`}>Class</th>
             <th className={`${th} text-right`}>Departures</th>
             <th className={`${th} text-right`}>Long-haul</th>
+            <th className={`${th} text-right`}>% of long-haul</th>
           </tr>
         </thead>
         <tbody>
@@ -60,7 +63,8 @@ export function RouteMixEvidence({ data }: { data: RouteMixData }) {
                 <span className="num">{r.service_class}</span> {r.label}
               </td>
               <td className="num py-1.5 pr-3 text-right">{fmt(r.departures)}</td>
-              <td className="num py-1.5 text-right">{fmt(r.long_haul_departures)}</td>
+              <td className="num py-1.5 pr-3 text-right">{fmt(r.long_haul_departures)}</td>
+              <td className="num py-1.5 text-right">{r.share_of_long_haul_pct.toFixed(1)}%</td>
             </tr>
           ))}
         </tbody>

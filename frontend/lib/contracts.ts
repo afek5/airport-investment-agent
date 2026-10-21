@@ -68,6 +68,9 @@ export interface ServiceClassRow {
   long_haul_departures: number;
   passengers: number;
   freight_lbs: number;
+  share_of_departures_pct: number;
+  long_haul_share_pct: number;
+  share_of_long_haul_pct: number;
 }
 export interface LongHaulDestination {
   dest: string;
@@ -87,6 +90,10 @@ export interface RouteMixData {
   passenger_weighted: Share;
   cargo_inclusive_departures: Share;
   non_passenger_departure_share_pct: number;
+  non_passenger_departures: Share;
+  all_cargo_departures: Share;
+  all_cargo_share_of_long_haul_pct: number;
+  non_passenger_share_of_long_haul_pct: number;
   by_service_class: ServiceClassRow[];
   top_long_haul_destinations: LongHaulDestination[];
 }

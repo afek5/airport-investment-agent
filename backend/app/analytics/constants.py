@@ -17,6 +17,9 @@ SERVICE_CLASS_LABELS = {
     "L": "non-scheduled passenger/cargo (charter)",
     "P": "non-scheduled cargo/other",
 }
+# All-cargo service classes (scheduled + non-scheduled freighters). L (charter) is mixed, so it is
+# non-passenger but not all-cargo.
+ALL_CARGO_CLASSES = ("G", "P")
 # Above this share of non-class-F departures, route_mix adds the cargo-hub caveat.
 CARGO_HEAVY_SHARE_PCT = 25.0
 TOP_DESTINATIONS = 10

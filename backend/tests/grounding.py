@@ -10,8 +10,8 @@ import json
 import re
 from typing import Any
 
-NUM = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(\s*%)?(?:\s*(million|M|k|thousand)\b)?")
-SCALE = {"million": 1e6, "M": 1e6, "k": 1e3, "thousand": 1e3}
+NUM = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(\s*%)?(?:\s*(billion|million|bn|B|M|k|thousand)\b)?")
+SCALE = {"billion": 1e9, "bn": 1e9, "B": 1e9, "million": 1e6, "M": 1e6, "k": 1e3, "thousand": 1e3}
 
 
 def sig_digits(intpart: str, frac: str | None) -> int:

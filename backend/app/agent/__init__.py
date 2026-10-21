@@ -49,7 +49,9 @@ def route_mix(iata: str, min_miles: int = 3000, include_cargo: bool = False) -> 
 
     Returns the scheduled-passenger (class F) departures share for segments ≥ min_miles (the
     headline), the passenger-weighted share, the cargo-inclusive share (all classes, a labelled
-    variant), a per-service-class breakdown and the top long-haul destinations. All three shares
+    variant), ready-made group totals (non-passenger G+L+P and all-cargo G+P long-haul counts and
+    shares, so never add class rows yourself), a per-service-class breakdown with each class's
+    share of departures and of long-haul departures, and the top long-haul destinations. All three shares
     are always returned; include_cargo only widens the top-destinations list to all service
     classes (leave it false unless the user asks about cargo destinations).
     """
