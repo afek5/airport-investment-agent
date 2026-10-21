@@ -1,24 +1,103 @@
 {
-  "built_at": "2026-10-21T17:43:47Z",
+  "built_at": "2026-10-21T18:32:22Z",
   "tables": {
     "airports": {
       "as_of": "CY2025",
-      "built_at": "2026-10-21T17:34:58Z",
-      "notes": [],
+      "built_at": "2026-10-21T18:32:22Z",
+      "notes": [
+        "CBSA: 366 from the Census Geocoder, 0 from the hand map, 36 outside any metro/micro area: ['GUM', 'STT', 'STX', 'BET', 'SPN', 'SCC', 'SIT', 'ADQ', 'OME', 'GUC', 'ENA', 'OTZ', 'BRW', 'PPG', 'AKN', 'VQS', 'DLG', 'RHI', 'TIQ', 'PSG', 'HOM', 'PQI', 'DUT', 'PIH', 'CPX', 'CDV', 'KLW', 'INL', 'WRG', 'CNY', 'GAL', 'YAK', 'FRD', 'DVL', 'TEX', 'GST']"
+      ],
       "rows": 402,
-      "source": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + Census PEP CBSA names (hand-mapped CBSA for golden airports)",
+      "source": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + CBSA via Census Geocoder coordinates API (hand-map fallback for golden airports)",
       "url": [
         "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
         "https://davidmegginson.github.io/ourairports-data/airports.csv",
         "https://davidmegginson.github.io/ourairports-data/runways.csv",
-        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv"
+        "https://geocoding.geo.census.gov/geocoder/geographies/coordinates",
+        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/prc-cbsa-est2025.csv"
       ],
       "window": "current"
     },
+    "enplanements": {
+      "as_of": "CY2025",
+      "built_at": "2026-10-21T18:32:22Z",
+      "notes": [
+        "yoy_pct is in percent: 100 × (cy2025 / cy2024 − 1)"
+      ],
+      "rows": 402,
+      "source": "FAA CY2025 commercial-service enplanements (CY2024 and CY2025 columns), primary airports",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "window": "CY2024–CY2025"
+    },
+    "metro_population": {
+      "as_of": "Jul 1, 2025 estimate (Vintage 2025)",
+      "built_at": "2026-10-21T18:32:22Z",
+      "notes": [
+        "366 of 402 universe airports map to a CBSA"
+      ],
+      "rows": 935,
+      "source": "Census Population Estimates Program, CBSA totals (Vintage 2025), metro + micro areas incl. Puerto Rico",
+      "url": [
+        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/prc-cbsa-est2025.csv"
+      ],
+      "window": "2020–2025"
+    },
+    "ontime_airport_month": {
+      "as_of": "Aug 2026",
+      "built_at": "2026-10-21T18:32:22Z",
+      "months": [
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "notes": [
+        "reporting carriers only (the largest US carriers), domestic flights; shares and rates are fractions 0–1; nas_delay_min_per_flight = NAS-attributed delay minutes / operated flights"
+      ],
+      "rows": 4144,
+      "source": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "window": "12 months, Sep 2025–Aug 2026"
+    },
+    "runway_capacity": {
+      "as_of": "FAA Airport Capacity Profiles 2014 (LAX, SNA); 2019 editions for SFO and BOS",
+      "built_at": "2026-10-21T18:32:22Z",
+      "notes": [
+        "covers SFO, LAX, SNA and BOS only; any other airport has no runway_capacity row",
+        "SFO and BOS: the FAA no longer publishes their 2014 profiles, so rates come from the 2019 editions (2014 Table 1 totals cited in source_note as a cross-check)",
+        "ifr_arrival_drop_pct = 100 × (1 − ifr_arrivals_hr / vfr_arrivals_hr)"
+      ],
+      "rows": 4,
+      "source": "FAA Airport Capacity Profiles: ATC facility-reported hourly rates (arrivals, departures), hand-coded per airport",
+      "url": "https://www.faa.gov/airports/planning_capacity/profiles",
+      "window": "static"
+    },
     "t100_routes": {
       "as_of": "Jul 2026",
-      "built_at": "2026-10-21T17:43:47Z",
+      "built_at": "2026-10-21T18:32:22Z",
       "months": [
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
         "2025-08",
         "2025-09",
         "2025-10",
@@ -32,10 +111,31 @@
         "2026-06",
         "2026-07"
       ],
-      "rows": 238627,
+      "notes": [
+        "rows with departures_performed == 0 dropped; service_class F = scheduled passenger, G = scheduled cargo, L/P = non-scheduled"
+      ],
+      "rows": 472654,
       "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
       "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
-      "window": "12 months, Aug 2025\u2013Jul 2026"
+      "window": "24 months, Aug 2024–Jul 2026"
+    },
+    "taf": {
+      "as_of": "TAF 2025 (actuals to FY2024)",
+      "built_at": "2026-10-21T18:32:22Z",
+      "fiscal_years": [
+        2015,
+        2045
+      ],
+      "notes": [
+        "enplanements_total = aac + aat + commuter + us_flag + frgn_flag (international included)",
+        "ops_air_carrier = itinerant air-carrier ops; ops_itinerant_total = air carrier + air taxi + GA + military",
+        "universe airports absent from TAF 2025: ['DJT']",
+        "diagnostic: TAF FY2024 total vs FAA CY2024 for 226 airports with > 100k CY2024 enplanements: median gap 1.5%, 4 beyond 10% (fiscal and calendar years cover different periods; not a failure); SFO FY2024 24,765,642 vs CY2024 25,078,968"
+      ],
+      "rows": 12431,
+      "source": "FAA Terminal Area Forecast 2025 (Enplanements.xlsx + AirportsOperations.xlsx), universe airports",
+      "url": "https://taf.faa.gov/Downloads/APO100_TAF_Final_2025.zip",
+      "window": "FY2015–FY2045 (fiscal years Oct–Sep; FY2015–FY2024 actual, FY2025–FY2045 forecast)"
     }
   }
 }

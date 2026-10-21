@@ -13,6 +13,7 @@ dev:
 ## test: offline tests (no API spend)
 test:
 	cd backend && uv run pytest -q
+	$(UV_BACKEND) pytest -q ingest/tests
 	cd frontend && npm test --if-present
 
 ## test-live: live e2e tests against real Claude (spends money; needs ANTHROPIC_API_KEY)
