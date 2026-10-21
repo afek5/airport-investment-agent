@@ -1,0 +1,41 @@
+{
+  "built_at": "2026-10-21T17:43:47Z",
+  "tables": {
+    "airports": {
+      "as_of": "CY2025",
+      "built_at": "2026-10-21T17:34:58Z",
+      "notes": [],
+      "rows": 402,
+      "source": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + Census PEP CBSA names (hand-mapped CBSA for golden airports)",
+      "url": [
+        "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+        "https://davidmegginson.github.io/ourairports-data/airports.csv",
+        "https://davidmegginson.github.io/ourairports-data/runways.csv",
+        "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv"
+      ],
+      "window": "current"
+    },
+    "t100_routes": {
+      "as_of": "Jul 2026",
+      "built_at": "2026-10-21T17:43:47Z",
+      "months": [
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07"
+      ],
+      "rows": 238627,
+      "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "window": "12 months, Aug 2025\u2013Jul 2026"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+/* UI-STYLE tokens ("mission control"). Dark is the default; .light switches. All colors alias these. */
+:root {
+  --ground: #0f0e0c;
+  --card-surface: #171613;
+  --ink: #f2f0ea;
+  --ink-muted: color-mix(in oklab, var(--ink) 62%, transparent);
+  --hairline: color-mix(in oklab, var(--ink) 10%, transparent);
+  --live: #0a6cff;
+  --ok: #3fb27f;
+  --warn: #e0a43a;
+  --bad: #e5604d;
+  --pillar-momentum: #9b8ac4;
+  --pillar-pressure: #c48a6a;
+  --pillar-scale: #7fa58f;
+}
+:root.light {
+  --ground: #f7f6f2;
+  --card-surface: #ffffff;
+  --ink: #1b1a17;
+  --ink-muted: color-mix(in oklab, var(--ink) 60%, transparent);
+  --ok: #1f8a5b;
+  --warn: #a8700f;
+  --bad: #c2412e;
+}

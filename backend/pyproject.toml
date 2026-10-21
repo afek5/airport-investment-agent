@@ -1,0 +1,32 @@
+[project]
+name = "airport-agent-backend"
+version = "0.1.0"
+description = "Airport Investment Intelligence Agent: FastAPI + Pydantic AI backend, deterministic analytics over the Snapshot"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic-ai-slim[anthropic,ui]==2.58.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "duckdb>=1.1",
+    "pyarrow>=17",
+    "pandas>=2.2",
+    "openpyxl>=3.1",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["live: calls the real Anthropic API (spends money); run with -m live"]
+addopts = "-m 'not live'"
+asyncio_mode = "auto"
