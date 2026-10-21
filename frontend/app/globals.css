@@ -150,7 +150,9 @@
   --input: var(--hairline);
   --ring: color-mix(in oklab, var(--ink) 40%, transparent);
 }
-body { background: var(--ground); color: var(--ink); font-family: var(--font-manrope), system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+/* Manrope's standard `liga` turns literal text into symbols: "(c)" draws as ©, "->" as an arrow, " <3 " as a heart.
+   Answers and tool labels must show the characters the model and tools wrote, so common ligatures are off. */
+body { background: var(--ground); color: var(--ink); font-family: var(--font-manrope), system-ui, sans-serif; font-size: 14px; line-height: 1.5; font-variant-ligatures: no-common-ligatures; }
 .num { font-family: var(--font-jetbrains), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 /* Eyebrow: mono 12px / 500, tracked; for section labels and table captions. */
 .eyebrow { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
