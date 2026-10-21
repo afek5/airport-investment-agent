@@ -212,7 +212,9 @@ async def test_g4_sfo_unmet_demand():
     assert um and um[0]["iata"].upper() == "SFO", f"unmet_demand(SFO) not called: {run.tools_in_order}"
     low = run.low
     drop = next(e for e in run.result("unmet_demand")["data"]["constraint_evidence"] if e["key"] == "ifr_arrival_drop")
-    assert "ifr" in low and f"{drop['value']}%" in run.answer, "IFR vs VFR arrival-rate drop missing"
+    # IFR = Instrument Flight Rules; "instrument conditions" names the same drop in plain words.
+    ifr = re.search(r"\bifr\b|instrument", low)
+    assert ifr and f"{drop['value']}%" in run.answer, "IFR vs VFR arrival-rate drop missing"
     assert "forecast gap" in low and "2030" in low, "Forecast Gap missing"
     assert "spill scenario" in low and ("not calibrated" in low or "uncalibrated" in low), \
         "Spill Scenario not labelled as an uncalibrated scenario"
@@ -225,7 +227,7 @@ async def test_g4_sfo_unmet_demand():
         assert f"{v:,.0f}" not in answer_section, "Spill Scenario figures in the Answer section"
     assert not re.search(r"lost passengers|passengers lost|lost to full", low), "spill stated as lost passengers"
     first_spill = low.index(f"{spill['low']:,.0f}") if f"{spill['low']:,.0f}" in low else len(low)
-    assert low.index("ifr") < first_spill and low.index("forecast gap") < first_spill, \
+    assert ifr.start() < first_spill and low.index("forecast gap") < first_spill, \
         "Spill Scenario presented before the observed evidence and the Forecast Gap"
     assert_common(run, confidence=("Medium",))
 

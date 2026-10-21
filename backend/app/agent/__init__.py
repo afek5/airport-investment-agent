@@ -18,6 +18,7 @@ from pydantic_ai.models.anthropic import AnthropicModelSettings
 from pydantic_ai.usage import UsageLimits
 
 from app import analytics, live
+from app.agent.display import GroupedNumbers
 from app.agent.prompt import SYSTEM_PROMPT
 from app.contracts import (
     AdHocData, ComparisonData, FollowupsData, LiveDelaysData, LiveTrafficData, OdDemandData, RankingData,
@@ -58,6 +59,8 @@ agent = Agent(
     defer_model_check=True,
     name="airport_analyst",
     retries=2,
+    # The model reads large numbers already digit-grouped, so it copies them instead of formatting them.
+    capabilities=[GroupedNumbers()],
     model_settings=AnthropicModelSettings(
         anthropic_cache_instructions=True,
         anthropic_cache_tool_definitions=True,
