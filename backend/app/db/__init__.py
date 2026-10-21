@@ -21,6 +21,22 @@ log = logging.getLogger(__name__)
 
 SCHEMA = (Path(__file__).parent / "schema.sql").read_text()
 
+# libpq-only URL options asyncpg would otherwise send to the server as settings, which Postgres rejects
+# ("unrecognized configuration parameter"). Neon's copied connection string carries channel_binding.
+_LIBPQ_ONLY_PARAMS = {"channel_binding"}
+
+
+def asyncpg_connect_args(dsn: str) -> tuple[str, dict[str, Any]]:
+    """`DATABASE_URL` as asyncpg takes it: libpq-only options dropped, and no statement cache behind
+    Neon's PgBouncer pooler (a `-pooler` host runs in transaction mode)."""
+    from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+    parts = urlsplit(dsn)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k not in _LIBPQ_ONLY_PARAMS]
+    clean = urlunsplit(parts._replace(query=urlencode(query)))
+    kwargs: dict[str, Any] = {"statement_cache_size": 0} if "-pooler." in (parts.hostname or "") else {}
+    return clean, kwargs
+
 
 @dataclass
 class UsageRecord:
@@ -144,8 +160,9 @@ class PgStore:
     async def init(self) -> None:
         import asyncpg
 
-        self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=5, init=self._init_conn,
-                                              command_timeout=10)
+        dsn, extra = asyncpg_connect_args(self.dsn)
+        self.pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5, init=self._init_conn,
+                                              command_timeout=10, **extra)
         async with self.pool.acquire() as conn:
             await conn.execute(SCHEMA)
 

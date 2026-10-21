@@ -1,0 +1,46 @@
+# Render Blueprint: one free Docker web service (SPEC §2). Postgres is Neon, not a Render database.
+# Deploy notes: the "Deploy (Render + Neon)" section of README.md. The human applies it with
+# ./scripts/setup-wizard.sh stage 5.
+#
+# Every variable in .env.example is declared here. `sync: false` means Render asks for the value when
+# the Blueprint is created and never stores it in git; that is every secret, plus the optional ones the
+# app does not need to start (leave those blank).
+services:
+  - type: web
+    name: airport-investment-agent
+    runtime: docker
+    plan: free
+    region: ohio # next to Neon's US East (Ohio) region
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # The Dockerfile CMD runs uvicorn with --proxy-headers --forwarded-allow-ips '*', so the client IP
+    # comes from X-Forwarded-For behind Render's proxy. Render injects PORT and the CMD binds to it.
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Anthropic (server-side only)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: MODEL_ID
+        value: anthropic:claude-sonnet-5-5
+      # Access gate and session cookie signing
+      - key: ACCESS_CODE
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      # Spend and abuse guards (SPEC §9)
+      - key: DAILY_BUDGET_USD
+        value: "5"
+      - key: RATE_LIMIT_PER_HOUR
+        value: "30"
+      # Postgres: paste the Neon connection string as DATABASE_URL (the app reads only DATABASE_URL)
+      - key: DATABASE_URL
+        sync: false
+      - key: NEON_DATABASE_URL # optional, not read by the app; leave blank
+        sync: false
+      # Voice call (stretch, SPEC §10); optional
+      - key: OPENAI_API_KEY
+        sync: false
+      # The public URL, for reference only; Render also sets RENDER_EXTERNAL_URL itself. Optional.
+      - key: RENDER_URL
+        sync: false

@@ -20,4 +20,6 @@ COPY data/snapshot /app/data/snapshot
 COPY --from=web /app/frontend/out /app/frontend/out
 ENV PATH="/app/backend/.venv/bin:$PATH" PORT=8000
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Behind Render's proxy the client IP is in X-Forwarded-For: trust it, or the per-IP access-code limit
+# (SPEC §9) sees one proxy IP and locks every user out at once (backend/tests/deploy/test_deploy.py).
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips '*'"]
