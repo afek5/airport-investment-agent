@@ -1,0 +1,111 @@
+{
+  "data": {
+    "iata": "SFO",
+    "year": 2026,
+    "quarter": 1,
+    "markets": [
+      {
+        "other_airport": "LAX",
+        "other_city": "Los Angeles, CA (Metropolitan Area)",
+        "nsmiles": 379.0,
+        "passengers_per_day": 4717.5,
+        "fare": 172.46,
+        "carrier_lg": "UA",
+        "large_ms_pct": 33.5,
+        "fare_lg": 197.35,
+        "carrier_low": "WN",
+        "lf_ms_pct": 14.5,
+        "fare_low": 149.13
+      },
+      {
+        "other_airport": "JFK",
+        "other_city": "New York City, NY (Metropolitan Area)",
+        "nsmiles": 2619.0,
+        "passengers_per_day": 3721.4,
+        "fare": 494.88,
+        "carrier_lg": "DL",
+        "large_ms_pct": 43.6,
+        "fare_lg": 601.69,
+        "carrier_low": "AS",
+        "lf_ms_pct": 16.1,
+        "fare_low": 297.77
+      },
+      {
+        "other_airport": "EWR",
+        "other_city": "New York City, NY (Metropolitan Area)",
+        "nsmiles": 2619.0,
+        "passengers_per_day": 2941.4,
+        "fare": 571.7,
+        "carrier_lg": "UA",
+        "large_ms_pct": 86.1,
+        "fare_lg": 614.7,
+        "carrier_low": "AS",
+        "lf_ms_pct": 11.4,
+        "fare_low": 285.35
+      },
+      {
+        "other_airport": "LAS",
+        "other_city": "Las Vegas, NV",
+        "nsmiles": 414.0,
+        "passengers_per_day": 2743.4,
+        "fare": 198.56,
+        "carrier_lg": "UA",
+        "large_ms_pct": 36.7,
+        "fare_lg": 254.55,
+        "carrier_low": "F9",
+        "lf_ms_pct": 19.1,
+        "fare_low": 124.9
+      },
+      {
+        "other_airport": "SAN",
+        "other_city": "San Diego, CA",
+        "nsmiles": 447.0,
+        "passengers_per_day": 2472.4,
+        "fare": 185.8,
+        "carrier_lg": "UA",
+        "large_ms_pct": 38.8,
+        "fare_lg": 211.01,
+        "carrier_low": "WN",
+        "lf_ms_pct": 36.7,
+        "fare_low": 159.79
+      },
+      {
+        "other_airport": "SEA",
+        "other_city": "Seattle, WA",
+        "nsmiles": 696.0,
+        "passengers_per_day": 2388.9,
+        "fare": 230.06,
+        "carrier_lg": "AS",
+        "large_ms_pct": 50.5,
+        "fare_lg": 218.56,
+        "carrier_low": "AS",
+        "lf_ms_pct": 50.5,
+        "fare_low": 218.56
+      }
+    ]
+  },
+  "sources": [
+    {
+      "name": "DOT Consumer Airfare Report Table 1a (SODA tfrh-tu9e, Live Signal)",
+      "url": "https://data.transportation.gov/resource/tfrh-tu9e.json",
+      "as_of": "2026 Q1",
+      "window": "2026 Q1 (one quarter)"
+    }
+  ],
+  "assumptions": [
+    "passengers_per_day is the average daily one-way O&D passengers in the airport-pair market over the quarter; large_ms_pct is the largest carrier's market share, lf_ms_pct the lowest-fare carrier's share."
+  ],
+  "data_confidence": {
+    "level": "Medium",
+    "reasons": [
+      "derived from the DB1B 10% ticket sample",
+      "one quarter of data"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "The report covers only the largest domestic (contiguous-US) city-pair markets; international and small markets are not included.",
+    "Live Signal: it informs the explanation and never changes an Investment Opportunity Score."
+  ],
+  "ad_hoc": false
+}

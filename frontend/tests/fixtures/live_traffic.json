@@ -1,0 +1,78 @@
+{
+  "data": {
+    "iata": "SFO",
+    "months": [
+      {
+        "year": 2025,
+        "month": 11,
+        "departures": 15309,
+        "passengers": 2099206,
+        "seats": 2581950,
+        "load_factor_pct": 81.3
+      },
+      {
+        "year": 2025,
+        "month": 12,
+        "departures": 15741,
+        "passengers": 2228951,
+        "seats": 2652207,
+        "load_factor_pct": 84.0
+      },
+      {
+        "year": 2026,
+        "month": 1,
+        "departures": 14521,
+        "passengers": 1849008,
+        "seats": 2443574,
+        "load_factor_pct": 75.7
+      },
+      {
+        "year": 2026,
+        "month": 2,
+        "departures": 13452,
+        "passengers": 1774804,
+        "seats": 2228123,
+        "load_factor_pct": 79.7
+      },
+      {
+        "year": 2026,
+        "month": 3,
+        "departures": 15595,
+        "passengers": 2187575,
+        "seats": 2589387,
+        "load_factor_pct": 84.5
+      },
+      {
+        "year": 2026,
+        "month": 4,
+        "departures": 15753,
+        "passengers": 2147010,
+        "seats": 2669813,
+        "load_factor_pct": 80.4
+      }
+    ]
+  },
+  "sources": [
+    {
+      "name": "BTS T-100 Segment summary by origin airport (SODA r495-tyji, Live Signal)",
+      "url": "https://data.bts.gov/resource/r495-tyji.json",
+      "as_of": "Apr 2026",
+      "window": "6 months, Nov 2025–Apr 2026"
+    }
+  ],
+  "assumptions": [
+    "All carriers and all service classes departing the airport, as BTS publishes them; load_factor_pct is BTS's total_load_factor."
+  ],
+  "data_confidence": {
+    "level": "High",
+    "reasons": [
+      "official BTS monthly T-100 summary"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "The BTS summary lags the TranStats T-100 download by about 3 months, so it can end earlier than the Snapshot.",
+    "Live Signal: it informs the explanation and never changes an Investment Opportunity Score."
+  ],
+  "ad_hoc": false
+}

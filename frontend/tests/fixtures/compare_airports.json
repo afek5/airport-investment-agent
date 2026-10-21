@@ -1,0 +1,186 @@
+{
+  "data": {
+    "lens": "congestion",
+    "iatas": [
+      "LAX",
+      "SNA"
+    ],
+    "names": {
+      "LAX": "Los Angeles International",
+      "SNA": "John Wayne/Orange County"
+    },
+    "metrics": [
+      {
+        "key": "delay_share",
+        "label": "Departures delayed ≥15 min",
+        "unit": "%",
+        "values": {
+          "LAX": 20.6,
+          "SNA": 20.6
+        },
+        "percentiles": {
+          "LAX": 58.5,
+          "SNA": 56.8
+        }
+      },
+      {
+        "key": "taxi_out",
+        "label": "Average taxi-out",
+        "unit": "min",
+        "values": {
+          "LAX": 18.2,
+          "SNA": 16.1
+        },
+        "percentiles": {
+          "LAX": 68.5,
+          "SNA": 38.2
+        }
+      },
+      {
+        "key": "cancel_rate",
+        "label": "Cancelled departures",
+        "unit": "%",
+        "values": {
+          "LAX": 1.0,
+          "SNA": 1.1
+        },
+        "percentiles": {
+          "LAX": 17.8,
+          "SNA": 20.3
+        }
+      },
+      {
+        "key": "nas_delay_min_per_flight",
+        "label": "NAS (airspace/airport) delay per departure",
+        "unit": "min",
+        "values": {
+          "LAX": 3.0,
+          "SNA": 3.5
+        },
+        "percentiles": {
+          "LAX": 45.6,
+          "SNA": 55.2
+        }
+      },
+      {
+        "key": "monthly_departures",
+        "label": "Departures per month, all T-100 service classes",
+        "unit": "departures",
+        "values": {
+          "LAX": 22265.6,
+          "SNA": 4283.0
+        },
+        "percentiles": {
+          "LAX": 99.0,
+          "SNA": 88.5
+        }
+      },
+      {
+        "key": "deps_per_runway_day",
+        "label": "Departures per runway per day",
+        "unit": "departures",
+        "values": {
+          "LAX": 182.9,
+          "SNA": 70.4
+        },
+        "percentiles": {
+          "LAX": 98.5,
+          "SNA": 90.7
+        }
+      },
+      {
+        "key": "load_factor",
+        "label": "Load Factor, scheduled passenger flights (class F)",
+        "unit": "%",
+        "values": {
+          "LAX": 82.3,
+          "SNA": 79.8
+        },
+        "percentiles": {
+          "LAX": 90.5,
+          "SNA": 74.4
+        }
+      },
+      {
+        "key": "ontime_flights",
+        "label": "Reporting-carrier departures in the On-Time window",
+        "unit": "departures",
+        "values": {
+          "LAX": 190107.0,
+          "SNA": 45211.0
+        },
+        "percentiles": {}
+      },
+      {
+        "key": "runway_count",
+        "label": "Runways",
+        "unit": "runways",
+        "values": {
+          "LAX": 4.0,
+          "SNA": 2.0
+        },
+        "percentiles": {}
+      }
+    ],
+    "congestion_index": {
+      "LAX": 57.5,
+      "SNA": 50.1
+    }
+  },
+  "sources": [
+    {
+      "name": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + CBSA via Census Geocoder coordinates API (hand-map fallback for golden airports)",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "current"
+    },
+    {
+      "name": "FAA CY2025 commercial-service enplanements (CY2024 and CY2025 columns), primary airports",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "CY2024–CY2025"
+    },
+    {
+      "name": "FAA Terminal Area Forecast 2025 (Enplanements.xlsx + AirportsOperations.xlsx), universe airports",
+      "url": "https://taf.faa.gov/Downloads/APO100_TAF_Final_2025.zip",
+      "as_of": "TAF 2025 (actuals to FY2024)",
+      "window": "FY2024 actual → FY2035 forecast"
+    },
+    {
+      "name": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "12 months, Aug 2025–Jul 2026"
+    },
+    {
+      "name": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Aug 2026",
+      "window": "12 months, Sep 2025–Aug 2026"
+    },
+    {
+      "name": "Census Population Estimates Program, CBSA totals (Vintage 2025), metro + micro areas incl. Puerto Rico",
+      "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+      "as_of": "Jul 1, 2025 estimate (Vintage 2025)",
+      "window": "2020–2025"
+    }
+  ],
+  "assumptions": [
+    "National percentiles are among the FAA Primary Airports that have each metric.",
+    "On-Time metrics (12 months, Sep 2025–Aug 2026) are flight-weighted over the reporting carriers' departures; they are left unmeasured below 1,000 departures.",
+    "Departures per month and per runway per day use all T-100 service classes (12 months, Aug 2025–Jul 2026) and the OurAirports runway count.",
+    "congestion_index = mean national percentile of delay share, taxi-out and NAS delay per departure; it is a congestion lens, not the Investment Opportunity Score.",
+    "Current NAS status is a Live Signal from the live_delays tool and is not part of this comparison."
+  ],
+  "data_confidence": {
+    "level": "High",
+    "reasons": [
+      "every compared metric is measured for every airport"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "On-Time data covers only the largest (reporting) US carriers and domestic flights, so delay and taxi-out say nothing about international operations."
+  ],
+  "ad_hoc": false
+}

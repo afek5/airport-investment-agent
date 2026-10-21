@@ -1,0 +1,177 @@
+{
+  "data": {
+    "iata": "BOS",
+    "name": "General Edward Lawrence Logan International",
+    "state": "MA",
+    "hub_size": "L",
+    "weights": {
+      "momentum": 0.35,
+      "pressure": 0.4,
+      "scale": 0.25
+    },
+    "score": 73.1,
+    "provisional": false,
+    "not_ranked_reason": null,
+    "national_rank": 11,
+    "national_of": 399,
+    "hub_rank": 5,
+    "hub_of": 30,
+    "pillars": [
+      {
+        "pillar": "momentum",
+        "score": 50.2,
+        "weight": 0.35,
+        "metrics": [
+          {
+            "metric": "forecast_cagr",
+            "label": "FAA TAF forecast enplanement CAGR, FY2024→FY2035",
+            "pillar": "momentum",
+            "raw_value": 2.3,
+            "unit": "% / yr",
+            "percentile": 61.8,
+            "imputed": false,
+            "weight_in_pillar": 0.6
+          },
+          {
+            "metric": "enpl_yoy",
+            "label": "Enplanement growth, CY2024→CY2025",
+            "pillar": "momentum",
+            "raw_value": -0.3,
+            "unit": "%",
+            "percentile": 32.8,
+            "imputed": false,
+            "weight_in_pillar": 0.4
+          }
+        ]
+      },
+      {
+        "pillar": "pressure",
+        "score": 86.1,
+        "weight": 0.4,
+        "metrics": [
+          {
+            "metric": "load_factor",
+            "label": "Load Factor, scheduled passenger flights (class F), last 12 T-100 months",
+            "pillar": "pressure",
+            "raw_value": 81.4,
+            "unit": "%",
+            "percentile": 84.9,
+            "imputed": false,
+            "weight_in_pillar": 0.4
+          },
+          {
+            "metric": "delay_share",
+            "label": "Departures delayed ≥15 min, last 12 On-Time months",
+            "pillar": "pressure",
+            "raw_value": 24.2,
+            "unit": "%",
+            "percentile": 82.2,
+            "imputed": false,
+            "weight_in_pillar": 0.3
+          },
+          {
+            "metric": "taxi_out",
+            "label": "Average taxi-out, last 12 On-Time months",
+            "pillar": "pressure",
+            "raw_value": 21.6,
+            "unit": "min",
+            "percentile": 91.7,
+            "imputed": false,
+            "weight_in_pillar": 0.3
+          }
+        ]
+      },
+      {
+        "pillar": "scale",
+        "score": 95.3,
+        "weight": 0.25,
+        "metrics": [
+          {
+            "metric": "enplanements",
+            "label": "Enplanements, CY2025",
+            "pillar": "scale",
+            "raw_value": 21021153.0,
+            "unit": "passengers",
+            "percentile": 96.3,
+            "imputed": false,
+            "weight_in_pillar": 0.7
+          },
+          {
+            "metric": "metro_pop",
+            "label": "Metro (CBSA) population, 2025",
+            "pillar": "scale",
+            "raw_value": 5034221.0,
+            "unit": "people",
+            "percentile": 92.9,
+            "imputed": false,
+            "weight_in_pillar": 0.3
+          }
+        ]
+      }
+    ],
+    "imputed_metrics": []
+  },
+  "sources": [
+    {
+      "name": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + CBSA via Census Geocoder coordinates API (hand-map fallback for golden airports)",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "current"
+    },
+    {
+      "name": "FAA CY2025 commercial-service enplanements (CY2024 and CY2025 columns), primary airports",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "CY2024–CY2025"
+    },
+    {
+      "name": "FAA Terminal Area Forecast 2025 (Enplanements.xlsx + AirportsOperations.xlsx), universe airports",
+      "url": "https://taf.faa.gov/Downloads/APO100_TAF_Final_2025.zip",
+      "as_of": "TAF 2025 (actuals to FY2024)",
+      "window": "FY2024 actual → FY2035 forecast"
+    },
+    {
+      "name": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "12 months, Aug 2025–Jul 2026"
+    },
+    {
+      "name": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Aug 2026",
+      "window": "12 months, Sep 2025–Aug 2026"
+    },
+    {
+      "name": "Census Population Estimates Program, CBSA totals (Vintage 2025), metro + micro areas incl. Puerto Rico",
+      "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+      "as_of": "Jul 1, 2025 estimate (Vintage 2025)",
+      "window": "2020–2025"
+    }
+  ],
+  "assumptions": [
+    "Universe: 402 FAA Primary Airports; every metric is a Percentile Score (0–100) among the Primary Airports that have it.",
+    "Pillar Weights (defaults): Demand Momentum 0.35, Capacity Pressure 0.40, Market Scale 0.25.",
+    "Demand Momentum = 0.60 × TAF enplanement CAGR FY2024→FY2035 (incl. international) + 0.40 × CY2024→CY2025 enplanement growth.",
+    "Capacity Pressure = 0.40 × class F Load Factor (12 months, Aug 2025–Jul 2026) + 0.30 × share of departures delayed ≥15 min + 0.30 × average taxi-out (12 months, Sep 2025–Aug 2026).",
+    "Market Scale = 0.70 × CY2025 enplanements + 0.30 × 2025 metro (CBSA) population.",
+    "Investment Opportunity Score = weighted geometric mean of the three Pillars (each floored at 1), so weakness in any one Pillar is penalised.",
+    "Missing metrics are imputed at the median (50th percentile): this pulls the Pillar toward the middle and can raise or lower an airport; such scores are Provisional and name the imputed metrics.",
+    "delay_share and taxi_out are left unmeasured for airports with fewer than 1,000 reporting-carrier departures in the On-Time window."
+  ],
+  "data_confidence": {
+    "level": "High",
+    "reasons": [
+      "Coverage 7/7 measured metrics."
+    ]
+  },
+  "coverage": {
+    "measured": 7,
+    "of": 7
+  },
+  "caveats": [
+    "The Investment Opportunity Score is a screening signal: it identifies airports worth investigating and does not establish that a terminal renovation would be profitable (it has no project cost, terminal or gate utilisation, commercial revenue or feasibility data).",
+    "On-Time data covers only the largest (reporting) US carriers and domestic flights, so delay and taxi-out say nothing about international operations."
+  ],
+  "ad_hoc": false
+}

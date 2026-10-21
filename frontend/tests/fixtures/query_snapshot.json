@@ -1,0 +1,66 @@
+{
+  "data": {
+    "sql": "SELECT dest_country, sum(departures_performed) AS deps FROM t100_routes WHERE origin='BOS' AND month BETWEEN 6 AND 8 AND year=2026 GROUP BY 1 ORDER BY 2 DESC LIMIT 8",
+    "columns": [
+      "dest_country",
+      "deps"
+    ],
+    "rows": [
+      [
+        "US",
+        29691
+      ],
+      [
+        "CA",
+        793
+      ],
+      [
+        "GB",
+        662
+      ],
+      [
+        "DO",
+        398
+      ],
+      [
+        "ES",
+        377
+      ],
+      [
+        "IE",
+        348
+      ],
+      [
+        "PT",
+        292
+      ],
+      [
+        "FR",
+        270
+      ]
+    ],
+    "row_count": 8,
+    "truncated": false
+  },
+  "sources": [
+    {
+      "name": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "24 months, Aug 2024–Jul 2026"
+    }
+  ],
+  "assumptions": [
+    "Ad-hoc SQL written by the agent over the Snapshot views; the SQL is shown in the trace."
+  ],
+  "data_confidence": {
+    "level": "Medium",
+    "reasons": [
+      "ad-hoc query outside the scoring methodology: check the SQL and the months it covers",
+      "Snapshot views: t100_routes"
+    ]
+  },
+  "coverage": null,
+  "caveats": [],
+  "ad_hoc": true
+}

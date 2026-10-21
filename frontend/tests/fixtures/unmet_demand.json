@@ -1,0 +1,229 @@
+{
+  "data": {
+    "iata": "SFO",
+    "name": "San Francisco International",
+    "constraint_evidence": [
+      {
+        "key": "delay_share",
+        "label": "Departures delayed ≥15 min",
+        "value": 25.3,
+        "unit": "%",
+        "benchmark": 20.0,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+        "as_of": "Aug 2026",
+        "strength": 88.4
+      },
+      {
+        "key": "taxi_out",
+        "label": "Average taxi-out",
+        "value": 23.0,
+        "unit": "min",
+        "benchmark": 16.8,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+        "as_of": "Aug 2026",
+        "strength": 96.3
+      },
+      {
+        "key": "nas_delay_min_per_flight",
+        "label": "NAS (airspace/airport) delay per departure",
+        "value": 3.9,
+        "unit": "min",
+        "benchmark": 3.3,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+        "as_of": "Aug 2026",
+        "strength": 64.7
+      },
+      {
+        "key": "ifr_arrival_drop",
+        "label": "Arrival rate drop in bad weather (IFR 36/hr vs VFR 54/hr)",
+        "value": 33.3,
+        "unit": "%",
+        "benchmark": null,
+        "benchmark_label": null,
+        "source": "FAA Airport Capacity Profiles (2014): FAA Airport Capacity Profile SFO (2019), pp. 4-5 and 12-13: ATC facility-reported rate (arrivals, departures) = (54,50) Visual and (36,42) Instrument. The 2014 SFO profile is no longer published by the FAA; the 2019 edition replaced it. Cross-check: the 2014 Airport Capacity Profiles Table 1 gives SFO 100-110 ops/hr Visual and 70-72 Instrument.",
+        "as_of": "2014",
+        "strength": 66.7
+      },
+      {
+        "key": "full_route_month_share",
+        "label": "Route-months with Load Factor above 0.85 (class F)",
+        "value": 35.2,
+        "unit": "%",
+        "benchmark": 18.6,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+        "as_of": "Jul 2026",
+        "strength": 83.4
+      },
+      {
+        "key": "load_factor",
+        "label": "Load Factor, scheduled passenger flights (class F)",
+        "value": 82.1,
+        "unit": "%",
+        "benchmark": 75.8,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+        "as_of": "Jul 2026",
+        "strength": 89.4
+      },
+      {
+        "key": "pax_growth_pct",
+        "label": "Passenger growth, last 12 vs prior 12 months (class F)",
+        "value": 0.6,
+        "unit": "%",
+        "benchmark": 0.9,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+        "as_of": "Jul 2026",
+        "strength": null
+      },
+      {
+        "key": "seat_growth_pct",
+        "label": "Seat growth, last 12 vs prior 12 months (class F)",
+        "value": 0.7,
+        "unit": "%",
+        "benchmark": 1.5,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+        "as_of": "Jul 2026",
+        "strength": null
+      },
+      {
+        "key": "pax_minus_seat_growth_pp",
+        "label": "Passenger growth minus seat growth (supply not keeping up when positive)",
+        "value": -0.1,
+        "unit": "pp",
+        "benchmark": -0.9,
+        "benchmark_label": "national median, Primary Airports",
+        "source": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+        "as_of": "Jul 2026",
+        "strength": 57.7
+      }
+    ],
+    "forecast_gap": {
+      "from_fy": 2024,
+      "to_fy": 2030,
+      "enplanements_from": 24765642.0,
+      "enplanements_to": 30516426.0,
+      "enplanements_abs": 5750784.0,
+      "enplanements_pct": 23.2,
+      "ops_from": 350805.0,
+      "ops_to": 435218.0,
+      "ops_abs": 84413.0,
+      "ops_pct": 24.1
+    },
+    "spill_scenario": {
+      "label": "Spill Scenario under assumed spill rates; not calibrated",
+      "low": 396415.0,
+      "high": 839701.0,
+      "parameters": [
+        "Load Factor 0.85–0.90: assumed spill 2%–5% of carried passengers",
+        "Load Factor 0.90–0.95: assumed spill 5%–10% of carried passengers",
+        "Load Factor above 0.95: assumed spill 10%–15% of carried passengers",
+        "Only class F route-months with Load Factor above 0.85 contribute.",
+        "Spill rates are illustrative assumptions, not calibrated to this airport or any booking data."
+      ],
+      "top_routes": [
+        {
+          "dest": "EWR",
+          "months_over_threshold": 12,
+          "low": 38237.0,
+          "high": 75711.0
+        },
+        {
+          "dest": "JFK",
+          "months_over_threshold": 10,
+          "low": 32159.0,
+          "high": 67442.0
+        },
+        {
+          "dest": "ORD",
+          "months_over_threshold": 10,
+          "low": 22956.0,
+          "high": 52215.0
+        },
+        {
+          "dest": "DFW",
+          "months_over_threshold": 10,
+          "low": 18073.0,
+          "high": 39326.0
+        },
+        {
+          "dest": "HNL",
+          "months_over_threshold": 9,
+          "low": 16875.0,
+          "high": 35655.0
+        }
+      ]
+    },
+    "cannot_determine": [
+      "Actual denied or turned-away passengers (no public data records them).",
+      "Demand that recaptured to nearby airports (e.g. OAK/SJC for SFO).",
+      "Whether the binding constraint is the terminal, the gates or the runway/airspace.",
+      "Airline network choices versus infrastructure limits.",
+      "Project cost and revenue."
+    ],
+    "why_drivers": [
+      "Average taxi-out: 23.0 min vs national median 16.8 min (national percentile 96.3).",
+      "Load Factor, scheduled passenger flights (class F): 82.1% vs national median 75.8% (national percentile 89.4).",
+      "Departures delayed ≥15 min: 25.3% vs national median 20.0% (national percentile 88.4).",
+      "Route-months with Load Factor above 0.85 (class F): 35.2% vs national median 18.6% (national percentile 83.4).",
+      "Arrival rate drop in bad weather (IFR 36/hr vs VFR 54/hr): 33.3%.",
+      "NAS (airspace/airport) delay per departure: 3.9 min vs national median 3.3 min (national percentile 64.7)."
+    ]
+  },
+  "sources": [
+    {
+      "name": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Aug 2026",
+      "window": "12 months, Sep 2025–Aug 2026"
+    },
+    {
+      "name": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "12 months, Aug 2025–Jul 2026"
+    },
+    {
+      "name": "FAA Airport Capacity Profiles: ATC facility-reported hourly rates (arrivals, departures), hand-coded per airport",
+      "url": "https://www.faa.gov/airports/planning_capacity/profiles",
+      "as_of": "FAA Airport Capacity Profiles 2014 (LAX, SNA); 2019 editions for SFO and BOS",
+      "window": "static"
+    },
+    {
+      "name": "FAA Terminal Area Forecast 2025 (Enplanements.xlsx + AirportsOperations.xlsx), universe airports",
+      "url": "https://taf.faa.gov/Downloads/APO100_TAF_Final_2025.zip",
+      "as_of": "TAF 2025 (actuals to FY2024)",
+      "window": "FY2024 actual → FY2030 forecast"
+    }
+  ],
+  "assumptions": [
+    "Constraint Evidence is observed data; benchmarks are national medians of FAA Primary Airports.",
+    "Driver strength = the airport's national percentile on that indicator (IFR drop: 2 points per percentage point of arrival-rate loss, capped at 100); indicators above the median become why-drivers (passenger-minus-seat growth only when positive).",
+    "Current NAS status is a Live Signal from the live_delays tool, not part of this Snapshot evidence.",
+    "Forecast Gap = FAA TAF 2025 total enplanements (air carrier + air taxi + commuter + international) and air-carrier operations, FY2024 actual → FY2030 forecast (fiscal years Oct–Sep).",
+    "Load Factor 0.85–0.90: assumed spill 2%–5% of carried passengers",
+    "Load Factor 0.90–0.95: assumed spill 5%–10% of carried passengers",
+    "Load Factor above 0.95: assumed spill 10%–15% of carried passengers",
+    "Only class F route-months with Load Factor above 0.85 contribute.",
+    "Spill rates are illustrative assumptions, not calibrated to this airport or any booking data."
+  ],
+  "data_confidence": {
+    "level": "Medium",
+    "reasons": [
+      "Unmet Demand is argued from observed indicators and an official forecast; turned-away passengers are not observed in any public data.",
+      "The Spill Scenario rests on assumed, uncalibrated spill rates.",
+      "Windows: T-100 12 months, Aug 2025–Jul 2026; On-Time 12 months, Sep 2025–Aug 2026."
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "On-Time data covers only the largest (reporting) US carriers and domestic flights, so delay and taxi-out say nothing about international operations.",
+    "The Spill Scenario is a sensitivity under assumed spill rates, not observed turned-away passengers; full aircraft alone do not prove passengers were turned away."
+  ],
+  "ad_hoc": false
+}

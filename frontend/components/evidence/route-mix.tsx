@@ -1,103 +1,105 @@
 import type { RouteMixData, Share } from "@/lib/contracts";
+import { fmtInt, fmtPct } from "@/lib/format";
+import { DataTable, EvidenceTitle, Muted, Td, Th, Tr } from "./table";
 
-const fmt = (n: number) => n.toLocaleString("en-US");
-
-function ShareRow({ label, share, unit }: { label: string; share: Share; unit: string }) {
+function ShareRow({ label, share, strong }: { label: string; share: Share; strong?: boolean }) {
   return (
-    <tr className="border-t border-[var(--hairline)]">
-      <td className="py-1.5 pr-3">{label}</td>
-      <td className="num py-1.5 pr-3 text-right">{share.share_pct.toFixed(1)}%</td>
-      <td className="num py-1.5 pr-3 text-right">{fmt(share.long_haul)}</td>
-      <td className="num py-1.5 text-right">
-        {fmt(share.total)} <span className="text-[var(--ink-muted)]">{unit}</span>
-      </td>
-    </tr>
+    <Tr>
+      <Td className={strong ? "font-semibold" : undefined}>{label}</Td>
+      <Td num className={strong ? "font-semibold" : undefined}>
+        {fmtPct(share.share_pct)}
+      </Td>
+      <Td num>{fmtInt(share.long_haul)}</Td>
+      <Td num>{fmtInt(share.total)}</Td>
+    </Tr>
   );
 }
 
-const th = "num py-1.5 text-xs font-medium uppercase tracking-[0.06em] text-[var(--ink-muted)]";
-
 export function RouteMixEvidence({ data }: { data: RouteMixData }) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-[15px] font-semibold">
-          <span className="num">{data.iata}</span> · Long-haul share (≥ {fmt(data.min_miles)} mi)
-        </h3>
-        <p className="text-xs text-[var(--ink-muted)]">
-          {data.airport_name} · {data.window}
-        </p>
-      </div>
-      <table className="w-full text-[13px]">
+    <div className="space-y-4" data-testid="route-mix">
+      <EvidenceTitle
+        code={data.iata}
+        title={`Long-haul share (≥ ${fmtInt(data.min_miles)} mi)`}
+        sub={`${data.airport_name} · ${data.window}`}
+      />
+      <DataTable caption="Long-haul share by variant · departures unless noted">
         <thead>
           <tr>
-            <th className={`${th} text-left`}>Variant</th>
-            <th className={`${th} text-right`}>Share</th>
-            <th className={`${th} text-right`}>Long-haul</th>
-            <th className={`${th} text-right`}>Total</th>
+            <Th>Variant</Th>
+            <Th num>Share</Th>
+            <Th num>Long-haul</Th>
+            <Th num>Total</Th>
           </tr>
         </thead>
         <tbody>
-          <ShareRow label="Passenger flights (class F)" share={data.passenger_departures} unit="deps" />
-          <ShareRow label="Passenger-weighted" share={data.passenger_weighted} unit="pax" />
-          <ShareRow label="Cargo-inclusive (all classes)" share={data.cargo_inclusive_departures} unit="deps" />
-          <ShareRow label="Non-passenger (G, L, P)" share={data.non_passenger_departures} unit="deps" />
-          <ShareRow label="All-cargo (G, P)" share={data.all_cargo_departures} unit="deps" />
+          <ShareRow label="Passenger flights (F)" share={data.passenger_departures} strong />
+          <ShareRow label="Passenger-weighted (pax)" share={data.passenger_weighted} />
+          <ShareRow label="Cargo-inclusive (all)" share={data.cargo_inclusive_departures} />
+          <ShareRow label="Non-passenger (G, L, P)" share={data.non_passenger_departures} />
+          <ShareRow label="All-cargo (G, P)" share={data.all_cargo_departures} />
         </tbody>
-      </table>
+      </DataTable>
 
-      <table className="w-full text-[13px]">
-        <caption className={`${th} text-left`}>By service class</caption>
+      <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-[12.5px]">
+        <dt className="text-[var(--ink-muted)]">Non-passenger share of all departures</dt>
+        <dd className="num text-right">{fmtPct(data.non_passenger_departure_share_pct)}</dd>
+        <dt className="text-[var(--ink-muted)]">All-cargo share of long-haul departures</dt>
+        <dd className="num text-right">{fmtPct(data.all_cargo_share_of_long_haul_pct)}</dd>
+        <dt className="text-[var(--ink-muted)]">Non-passenger share of long-haul departures</dt>
+        <dd className="num text-right">{fmtPct(data.non_passenger_share_of_long_haul_pct)}</dd>
+      </dl>
+
+      <DataTable caption="By service class">
         <thead>
           <tr>
-            <th className={`${th} text-left`}>Class</th>
-            <th className={`${th} text-right`}>Departures</th>
-            <th className={`${th} text-right`}>Long-haul</th>
-            <th className={`${th} text-right`}>% of long-haul</th>
+            <Th>Class</Th>
+            <Th num>Departures</Th>
+            <Th num>Long-haul</Th>
+            <Th num title="This class's long-haul departures / all long-haul departures">
+              % of LH
+            </Th>
           </tr>
         </thead>
         <tbody>
           {data.by_service_class.map((r) => (
-            <tr key={r.service_class} className="border-t border-[var(--hairline)]">
-              <td className="py-1.5 pr-3">
-                <span className="num">{r.service_class}</span> {r.label}
-              </td>
-              <td className="num py-1.5 pr-3 text-right">{fmt(r.departures)}</td>
-              <td className="num py-1.5 pr-3 text-right">{fmt(r.long_haul_departures)}</td>
-              <td className="num py-1.5 text-right">{r.share_of_long_haul_pct.toFixed(1)}%</td>
-            </tr>
+            <Tr key={r.service_class}>
+              <Td>
+                <span className="num">{r.service_class}</span> <Muted>{r.label}</Muted>
+              </Td>
+              <Td num>{fmtInt(r.departures)}</Td>
+              <Td num>{fmtInt(r.long_haul_departures)}</Td>
+              <Td num>{fmtPct(r.share_of_long_haul_pct)}</Td>
+            </Tr>
           ))}
         </tbody>
-      </table>
+      </DataTable>
 
-      {data.top_long_haul_destinations.length > 0 && (
-        <table className="w-full text-[13px]">
-          <caption className={`${th} text-left`}>Top long-haul destinations</caption>
+      {data.top_long_haul_destinations.length > 0 ? (
+        <DataTable caption="Top long-haul destinations">
           <thead>
             <tr>
-              <th className={`${th} text-left`}>Dest</th>
-              <th className={`${th} text-right`}>Miles</th>
-              <th className={`${th} text-right`}>Departures</th>
-              <th className={`${th} text-right`}>Passengers</th>
+              <Th>Dest</Th>
+              <Th num>Miles</Th>
+              <Th num>Departures</Th>
+              <Th num>Passengers</Th>
             </tr>
           </thead>
           <tbody>
             {data.top_long_haul_destinations.map((d) => (
-              <tr key={d.dest} className="border-t border-[var(--hairline)]">
-                <td className="num py-1.5 pr-3">
+              <Tr key={d.dest}>
+                <Td className="num">
                   {d.dest}
-                  {d.dest_country && d.dest_country !== "US" ? (
-                    <span className="text-[var(--ink-muted)]"> {d.dest_country}</span>
-                  ) : null}
-                </td>
-                <td className="num py-1.5 pr-3 text-right">{fmt(d.distance_mi)}</td>
-                <td className="num py-1.5 pr-3 text-right">{fmt(d.departures)}</td>
-                <td className="num py-1.5 text-right">{fmt(d.passengers)}</td>
-              </tr>
+                  {d.dest_country && d.dest_country !== "US" ? <Muted> {d.dest_country}</Muted> : null}
+                </Td>
+                <Td num>{fmtInt(d.distance_mi)}</Td>
+                <Td num>{fmtInt(d.departures)}</Td>
+                <Td num>{fmtInt(d.passengers)}</Td>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      )}
+        </DataTable>
+      ) : null}
     </div>
   );
 }

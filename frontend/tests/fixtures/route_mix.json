@@ -1,0 +1,198 @@
+{
+  "data": {
+    "iata": "ANC",
+    "airport_name": "Ted Stevens Anchorage International",
+    "min_miles": 3000,
+    "include_cargo": false,
+    "window": "12 months, Aug 2025–Jul 2026",
+    "months": [
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07"
+    ],
+    "passenger_departures": {
+      "long_haul": 1005,
+      "total": 37243,
+      "share_pct": 2.7
+    },
+    "passenger_weighted": {
+      "long_haul": 166414,
+      "total": 2699637,
+      "share_pct": 6.2
+    },
+    "cargo_inclusive_departures": {
+      "long_haul": 25743,
+      "total": 87249,
+      "share_pct": 29.5
+    },
+    "non_passenger_departure_share_pct": 57.3,
+    "non_passenger_departures": {
+      "long_haul": 24738,
+      "total": 50006,
+      "share_pct": 49.5
+    },
+    "all_cargo_departures": {
+      "long_haul": 24643,
+      "total": 47717,
+      "share_pct": 51.6
+    },
+    "all_cargo_share_of_long_haul_pct": 95.7,
+    "non_passenger_share_of_long_haul_pct": 96.1,
+    "by_service_class": [
+      {
+        "service_class": "F",
+        "label": "scheduled passenger",
+        "departures": 37243,
+        "long_haul_departures": 1005,
+        "passengers": 2699637,
+        "freight_lbs": 11436650,
+        "share_of_departures_pct": 42.7,
+        "long_haul_share_pct": 2.7,
+        "share_of_long_haul_pct": 3.9
+      },
+      {
+        "service_class": "G",
+        "label": "scheduled cargo",
+        "departures": 33824,
+        "long_haul_departures": 16234,
+        "passengers": 1,
+        "freight_lbs": 3474670762,
+        "share_of_departures_pct": 38.8,
+        "long_haul_share_pct": 48.0,
+        "share_of_long_haul_pct": 63.1
+      },
+      {
+        "service_class": "L",
+        "label": "non-scheduled passenger/cargo (charter)",
+        "departures": 2289,
+        "long_haul_departures": 95,
+        "passengers": 81123,
+        "freight_lbs": 2004393,
+        "share_of_departures_pct": 2.6,
+        "long_haul_share_pct": 4.2,
+        "share_of_long_haul_pct": 0.4
+      },
+      {
+        "service_class": "P",
+        "label": "non-scheduled cargo/other",
+        "departures": 13893,
+        "long_haul_departures": 8409,
+        "passengers": 3,
+        "freight_lbs": 2226554444,
+        "share_of_departures_pct": 15.9,
+        "long_haul_share_pct": 60.5,
+        "share_of_long_haul_pct": 32.7
+      }
+    ],
+    "top_long_haul_destinations": [
+      {
+        "dest": "DFW",
+        "dest_country": "US",
+        "distance_mi": 3043,
+        "departures": 388,
+        "passengers": 69471
+      },
+      {
+        "dest": "ATL",
+        "dest_country": "US",
+        "distance_mi": 3417,
+        "departures": 156,
+        "passengers": 29993
+      },
+      {
+        "dest": "IAH",
+        "dest_country": "US",
+        "distance_mi": 3266,
+        "departures": 128,
+        "passengers": 17109
+      },
+      {
+        "dest": "IAD",
+        "dest_country": "US",
+        "distance_mi": 3356,
+        "departures": 110,
+        "passengers": 15585
+      },
+      {
+        "dest": "EWR",
+        "dest_country": "US",
+        "distance_mi": 3370,
+        "departures": 101,
+        "passengers": 14036
+      },
+      {
+        "dest": "JFK",
+        "dest_country": "US",
+        "distance_mi": 3386,
+        "departures": 71,
+        "passengers": 8781
+      },
+      {
+        "dest": "FRA",
+        "dest_country": "DE",
+        "distance_mi": 4677,
+        "departures": 30,
+        "passengers": 7196
+      },
+      {
+        "dest": "BOS",
+        "dest_country": "US",
+        "distance_mi": 3383,
+        "departures": 7,
+        "passengers": 991
+      },
+      {
+        "dest": "HND",
+        "dest_country": "JP",
+        "distance_mi": 3466,
+        "departures": 6,
+        "passengers": 1393
+      },
+      {
+        "dest": "ICN",
+        "dest_country": "KR",
+        "distance_mi": 3799,
+        "departures": 2,
+        "passengers": 445
+      }
+    ]
+  },
+  "sources": [
+    {
+      "name": "BTS T-100 Segment (All Carriers)",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "12 months, Aug 2025–Jul 2026"
+    }
+  ],
+  "assumptions": [
+    "Long-haul Flight = a flight segment of 3,000 statute miles or more (T-100 segment distance).",
+    "Headline share counts scheduled passenger flights (class F), departures performed from ANC.",
+    "Passenger-weighted share = passengers on long-haul segments / all class F passengers.",
+    "Cargo-inclusive share counts every T-100 service class (F, G, L, P): a separately labelled variant.",
+    "Non-passenger = classes G, L and P; all-cargo = classes G and P (L charters can carry passengers).",
+    "Zero-departure T-100 rows are dropped; carriers and aircraft types are aggregated.",
+    "Top long-haul destinations list scheduled passenger flights (class F) only."
+  ],
+  "data_confidence": {
+    "level": "High",
+    "reasons": [
+      "T-100 is a census of all carriers' segments; 12 months, Aug 2025–Jul 2026."
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "T-100 reports flight segments: a multi-stop flight counts each leg separately.",
+    "ANC is cargo-heavy: 57.3% of all departures are not scheduled passenger flights, and all-cargo flights (classes G + P) make 24,643 of the 25,743 long-haul departures (95.7%), so the cargo-inclusive share (29.5%) differs strongly from the passenger share (2.7%)."
+  ],
+  "ad_hoc": false
+}

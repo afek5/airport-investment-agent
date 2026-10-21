@@ -150,5 +150,28 @@
   --input: var(--hairline);
   --ring: color-mix(in oklab, var(--ink) 40%, transparent);
 }
-body { background: var(--ground); color: var(--ink); font-family: var(--font-manrope), system-ui, sans-serif; }
+body { background: var(--ground); color: var(--ink); font-family: var(--font-manrope), system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .num { font-family: var(--font-jetbrains), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+/* Eyebrow: mono 12px / 500, tracked; for section labels and table captions. */
+.eyebrow { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
+::selection { background: color-mix(in oklab, var(--live) 35%, transparent); }
+@layer base {
+  :focus-visible { outline: 2px solid color-mix(in oklab, var(--ink) 70%, transparent); outline-offset: 2px; }
+}
+/* Answer markdown tables: tabular numbers, calm chrome. */
+.answer table { font-variant-numeric: tabular-nums; }
+* { scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent; }
+
+/* Motion: one-shot transitions on state change only; nothing loops idly. */
+@keyframes live-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--live) 55%, transparent); } 100% { box-shadow: 0 0 0 6px transparent; } }
+.live-dot { background: var(--live); animation: live-pulse 1.4s ease-out infinite; }
+@keyframes land { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.land { animation: land 220ms ease-out both; }
+@keyframes panel-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+.panel-in { animation: panel-in 200ms ease-out both; }
+@keyframes sheet-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-in { animation: sheet-in 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .live-dot { box-shadow: 0 0 0 2px color-mix(in oklab, var(--live) 35%, transparent); }
+}

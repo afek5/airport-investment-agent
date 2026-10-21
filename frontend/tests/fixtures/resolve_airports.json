@@ -1,0 +1,81 @@
+{
+  "data": {
+    "query": "LA",
+    "resolved": "LAX",
+    "candidates": [
+      {
+        "iata": "LAX",
+        "name": "Los Angeles International",
+        "city": "Los Angeles",
+        "state": "CA",
+        "hub_size": "L",
+        "is_primary": true,
+        "match": "alias"
+      },
+      {
+        "iata": "BUR",
+        "name": "Hollywood Burbank",
+        "city": "Burbank",
+        "state": "CA",
+        "hub_size": "M",
+        "is_primary": true,
+        "match": "alias"
+      },
+      {
+        "iata": "LGB",
+        "name": "Long Beach (Daugherty Field)",
+        "city": "Long Beach",
+        "state": "CA",
+        "hub_size": "S",
+        "is_primary": true,
+        "match": "alias"
+      },
+      {
+        "iata": "ONT",
+        "name": "Ontario International",
+        "city": "Ontario",
+        "state": "CA",
+        "hub_size": "M",
+        "is_primary": true,
+        "match": "alias"
+      },
+      {
+        "iata": "SNA",
+        "name": "John Wayne/Orange County",
+        "city": "Santa Ana",
+        "state": "CA",
+        "hub_size": "M",
+        "is_primary": true,
+        "match": "alias"
+      }
+    ],
+    "alternates": [
+      "BUR",
+      "LGB",
+      "ONT",
+      "SNA"
+    ]
+  },
+  "sources": [
+    {
+      "name": "FAA CY2025 commercial-service enplanements + OurAirports",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": null
+    }
+  ],
+  "assumptions": [
+    "LA = LAX (Los Angeles International); SNA is Santa Ana/Orange County; alternates: BUR, LGB, ONT, SNA"
+  ],
+  "data_confidence": {
+    "level": "High",
+    "reasons": [
+      "alias table match"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "The universe is FAA Primary Airports (more than 10,000 boardings a year)."
+  ],
+  "ad_hoc": false
+}

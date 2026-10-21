@@ -1,0 +1,284 @@
+{
+  "data": {
+    "scope": "states CT, MA, ME, NH, RI, VT (Primary Airports)",
+    "states": [
+      "CT",
+      "MA",
+      "ME",
+      "NH",
+      "RI",
+      "VT"
+    ],
+    "faa_region": null,
+    "hub_sizes": null,
+    "pillar": "overall",
+    "weights": {
+      "momentum": 0.35,
+      "pressure": 0.4,
+      "scale": 0.25
+    },
+    "universe_size": 402,
+    "ranked": [
+      {
+        "rank": 1,
+        "iata": "BOS",
+        "name": "General Edward Lawrence Logan International",
+        "state": "MA",
+        "hub_size": "L",
+        "score": 73.1,
+        "pillars": {
+          "momentum": 50.2,
+          "pressure": 86.1,
+          "scale": 95.3
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 2,
+        "iata": "BGR",
+        "name": "Bangor International",
+        "state": "ME",
+        "hub_size": "N",
+        "score": 72.4,
+        "pillars": {
+          "momentum": 85.7,
+          "pressure": 75.9,
+          "scale": 53.0
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 3,
+        "iata": "BTV",
+        "name": "Patrick Leahy Burlington International",
+        "state": "VT",
+        "hub_size": "S",
+        "score": 71.9,
+        "pillars": {
+          "momentum": 69.4,
+          "pressure": 82.8,
+          "scale": 60.4
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 4,
+        "iata": "HVN",
+        "name": "Tweed/New Haven",
+        "state": "CT",
+        "hub_size": "S",
+        "score": 69.9,
+        "pillars": {
+          "momentum": 91.1,
+          "pressure": 56.2,
+          "scale": 68.1
+        },
+        "coverage": {
+          "measured": 5,
+          "of": 7
+        },
+        "provisional": true,
+        "imputed_metrics": [
+          "delay_share",
+          "taxi_out"
+        ]
+      },
+      {
+        "rank": 5,
+        "iata": "PWM",
+        "name": "Portland International Jetport",
+        "state": "ME",
+        "hub_size": "S",
+        "score": 64.8,
+        "pillars": {
+          "momentum": 64.3,
+          "pressure": 60.8,
+          "scale": 72.6
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 6,
+        "iata": "PVD",
+        "name": "Rhode Island Tf Green International",
+        "state": "RI",
+        "hub_size": "S",
+        "score": 62.8,
+        "pillars": {
+          "momentum": 65.0,
+          "pressure": 51.8,
+          "scale": 81.6
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 7,
+        "iata": "PSM",
+        "name": "Portsmouth International at Pease",
+        "state": "NH",
+        "hub_size": "N",
+        "score": 60.1,
+        "pillars": {
+          "momentum": 57.9,
+          "pressure": 64.6,
+          "scale": 56.4
+        },
+        "coverage": {
+          "measured": 5,
+          "of": 7
+        },
+        "provisional": true,
+        "imputed_metrics": [
+          "delay_share",
+          "taxi_out"
+        ]
+      },
+      {
+        "rank": 8,
+        "iata": "BDL",
+        "name": "Bradley International",
+        "state": "CT",
+        "hub_size": "M",
+        "score": 57.0,
+        "pillars": {
+          "momentum": 41.2,
+          "pressure": 59.8,
+          "scale": 83.5
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 9,
+        "iata": "MVY",
+        "name": "Martha's Vineyard",
+        "state": "MA",
+        "hub_size": "N",
+        "score": 54.7,
+        "pillars": {
+          "momentum": 82.1,
+          "pressure": 57.7,
+          "scale": 28.4
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      },
+      {
+        "rank": 10,
+        "iata": "MHT",
+        "name": "Manchester Boston Regional",
+        "state": "NH",
+        "hub_size": "S",
+        "score": 52.2,
+        "pillars": {
+          "momentum": 61.5,
+          "pressure": 35.7,
+          "scale": 76.3
+        },
+        "coverage": {
+          "measured": 7,
+          "of": 7
+        },
+        "provisional": false,
+        "imputed_metrics": []
+      }
+    ],
+    "not_ranked": []
+  },
+  "sources": [
+    {
+      "name": "FAA CY2025 commercial-service enplanements (universe: S/L = P) + OurAirports airports/runways + CBSA via Census Geocoder coordinates API (hand-map fallback for golden airports)",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "current"
+    },
+    {
+      "name": "FAA CY2025 commercial-service enplanements (CY2024 and CY2025 columns), primary airports",
+      "url": "https://www.faa.gov/airports/planning_capacity/passenger_allcargo_stats/passenger/arp-cy2025-commercial-service-enplanements.xlsx",
+      "as_of": "CY2025",
+      "window": "CY2024–CY2025"
+    },
+    {
+      "name": "FAA Terminal Area Forecast 2025 (Enplanements.xlsx + AirportsOperations.xlsx), universe airports",
+      "url": "https://taf.faa.gov/Downloads/APO100_TAF_Final_2025.zip",
+      "as_of": "TAF 2025 (actuals to FY2024)",
+      "window": "FY2024 actual → FY2035 forecast"
+    },
+    {
+      "name": "BTS TranStats T-100 Segment (All Carriers), carrier and aircraft aggregated away",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FMG&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Jul 2026",
+      "window": "12 months, Aug 2025–Jul 2026"
+    },
+    {
+      "name": "BTS Reporting Carrier On-Time Performance, pre-aggregated to origin airport × month",
+      "url": "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=Nv4%20Pn44vr45",
+      "as_of": "Aug 2026",
+      "window": "12 months, Sep 2025–Aug 2026"
+    },
+    {
+      "name": "Census Population Estimates Program, CBSA totals (Vintage 2025), metro + micro areas incl. Puerto Rico",
+      "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/metro/totals/cbsa-est2025-alldata.csv",
+      "as_of": "Jul 1, 2025 estimate (Vintage 2025)",
+      "window": "2020–2025"
+    }
+  ],
+  "assumptions": [
+    "Universe: 402 FAA Primary Airports; every metric is a Percentile Score (0–100) among the Primary Airports that have it.",
+    "Pillar Weights (defaults): Demand Momentum 0.35, Capacity Pressure 0.40, Market Scale 0.25.",
+    "Demand Momentum = 0.60 × TAF enplanement CAGR FY2024→FY2035 (incl. international) + 0.40 × CY2024→CY2025 enplanement growth.",
+    "Capacity Pressure = 0.40 × class F Load Factor (12 months, Aug 2025–Jul 2026) + 0.30 × share of departures delayed ≥15 min + 0.30 × average taxi-out (12 months, Sep 2025–Aug 2026).",
+    "Market Scale = 0.70 × CY2025 enplanements + 0.30 × 2025 metro (CBSA) population.",
+    "Investment Opportunity Score = weighted geometric mean of the three Pillars (each floored at 1), so weakness in any one Pillar is penalised.",
+    "Missing metrics are imputed at the median (50th percentile): this pulls the Pillar toward the middle and can raise or lower an airport; such scores are Provisional and name the imputed metrics.",
+    "delay_share and taxi_out are left unmeasured for airports with fewer than 1,000 reporting-carrier departures in the On-Time window."
+  ],
+  "data_confidence": {
+    "level": "Medium",
+    "reasons": [
+      "8 of 10 listed airports have full Coverage (7/7).",
+      "Provisional: HVN 5/7 (imputed delay_share, taxi_out); PSM 5/7 (imputed delay_share, taxi_out)",
+      "no On-Time coverage: fewer than 1,000 reporting-carrier departures"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "The Investment Opportunity Score is a screening signal: it identifies airports worth investigating and does not establish that a terminal renovation would be profitable (it has no project cost, terminal or gate utilisation, commercial revenue or feasibility data).",
+    "On-Time data covers only the largest (reporting) US carriers and domestic flights, so delay and taxi-out say nothing about international operations.",
+    "Showing the top 10 of 16 ranked airports in scope."
+  ],
+  "ad_hoc": false
+}

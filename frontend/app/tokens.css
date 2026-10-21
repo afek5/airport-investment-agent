@@ -5,20 +5,38 @@
   --ink: #f2f0ea;
   --ink-muted: color-mix(in oklab, var(--ink) 62%, transparent);
   --hairline: color-mix(in oklab, var(--ink) 10%, transparent);
+  --hairline-strong: color-mix(in oklab, var(--ink) 18%, transparent);
+  /* Tonal steps: a faint ink tint for user messages, table group rows and hover. */
+  --tint: color-mix(in oklab, var(--ink) 5%, transparent);
+  --tint-strong: color-mix(in oklab, var(--ink) 9%, transparent);
+  --rail: #0b0a09;
   --live: #0a6cff;
+  /* Live blue used as text: lifted in dark so small labels keep AA contrast. */
+  --live-ink: #5b9dff;
   --ok: #3fb27f;
   --warn: #e0a43a;
-  --bad: #e5604d;
+  --bad: #ef6f5c;
   --pillar-momentum: #9b8ac4;
   --pillar-pressure: #c48a6a;
   --pillar-scale: #7fa58f;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-float: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.35);
+  --scrim: rgb(0 0 0 / 0.55);
 }
 :root.light {
   --ground: #f7f6f2;
   --card-surface: #ffffff;
   --ink: #1b1a17;
-  --ink-muted: color-mix(in oklab, var(--ink) 60%, transparent);
-  --ok: #1f8a5b;
-  --warn: #a8700f;
+  --ink-muted: color-mix(in oklab, var(--ink) 64%, transparent);
+  --rail: #efede7;
+  --live-ink: #0a5fe0;
+  --ok: #1d7f53;
+  --warn: #93600a;
   --bad: #c2412e;
+  --pillar-momentum: #7c69a8;
+  --pillar-pressure: #a96c4c;
+  --pillar-scale: #5c8a6e;
+  --shadow-card: 0 1px 2px rgb(27 26 23 / 0.06);
+  --shadow-float: 0 14px 34px -10px rgb(27 26 23 / 0.22), 0 2px 6px rgb(27 26 23 / 0.08);
+  --scrim: rgb(27 26 23 / 0.35);
 }
