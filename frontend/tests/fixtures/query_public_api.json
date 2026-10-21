@@ -1,0 +1,93 @@
+{
+  "data": {
+    "sql": "$select=year,quarter,avg(fare) AS avg_fare,sum(passengers) AS passengers_per_day\n$where=(airport_1='BOS' AND airport_2='LAX') OR (airport_1='LAX' AND airport_2='BOS')\n$group=year,quarter\n$order=year DESC,quarter DESC\n$limit=8",
+    "columns": [
+      "year",
+      "quarter",
+      "avg_fare",
+      "passengers_per_day"
+    ],
+    "rows": [
+      [
+        2026,
+        1,
+        345.59,
+        2425.74
+      ],
+      [
+        2025,
+        4,
+        375.7,
+        2957.2
+      ],
+      [
+        2025,
+        3,
+        361.82,
+        3105.03
+      ],
+      [
+        2025,
+        2,
+        363.31,
+        3388.24
+      ],
+      [
+        2025,
+        1,
+        327.51,
+        2464.56
+      ],
+      [
+        2024,
+        4,
+        351.7,
+        3466.74
+      ],
+      [
+        2024,
+        3,
+        337.94,
+        3630.33
+      ],
+      [
+        2024,
+        2,
+        388.17,
+        3360.77
+      ]
+    ],
+    "row_count": 8,
+    "truncated": true,
+    "dataset": "dot_airfare_pairs",
+    "resource_id": "tfrh-tu9e",
+    "endpoint": "https://data.transportation.gov/resource/tfrh-tu9e.json",
+    "limit": 8
+  },
+  "sources": [
+    {
+      "name": "DOT Consumer Airfare Report Table 1a, airport pairs (SODA tfrh-tu9e, ad-hoc Live Signal)",
+      "url": "https://data.transportation.gov/resource/tfrh-tu9e.json",
+      "as_of": "2026 Q1",
+      "window": "8 quarters, 2024 Q2–2026 Q1"
+    }
+  ],
+  "assumptions": [
+    "Ad-hoc SoQL over tfrh-tu9e written by the agent; the query is shown with the result.",
+    "Numeric values are rounded to 2 decimals (4 decimals below 1) as returned to the agent.",
+    "Only the first 8 rows were returned (limit 8); more rows match the query."
+  ],
+  "data_confidence": {
+    "level": "Medium",
+    "reasons": [
+      "ad-hoc query outside the scoring methodology",
+      "derived from the DB1B 10% ticket sample"
+    ]
+  },
+  "coverage": null,
+  "caveats": [
+    "Consumer Airfare Report fares are average one-way fares from the DB1B 10% ticket sample; only the largest domestic (contiguous-US) markets are published.",
+    "Ad-hoc live query outside the scoring methodology: check the SoQL and the periods it covers; it never changes an Investment Opportunity Score."
+  ],
+  "ad_hoc": true
+}

@@ -3,6 +3,7 @@
 - BTS SODA `r495-tyji`: T-100 segment summary by origin airport and month (`live_traffic`).
 - DOT SODA `tfrh-tu9e`: Consumer Airfare Report Table 1a, airport-pair O&D demand and fares (`od_demand`).
 - FAA NAS Status XML: current delays, ground stops and closures (`live_delays`).
+- `query_public_api` (app.live.public_api): the guarded ad-hoc SoQL escape hatch over a three-dataset whitelist.
 
 Each call has an 8 s timeout, one retry and a 15-minute in-process TTL cache. On failure the tool
 returns the normal envelope with empty data, Data Confidence Low and the caveat
@@ -55,6 +56,10 @@ class LiveSourceError(RuntimeError):
     pass
 
 
+class SoqlQueryError(ValueError):
+    """Socrata rejected the query itself (HTTP 400); not retried, the caller can fix the query."""
+
+
 def clear_cache() -> None:
     _cache.clear()
 
@@ -68,7 +73,8 @@ def _iata(code: str) -> str:
     return c
 
 
-async def _fetch(url: str, params: dict[str, str] | None = None, *, as_text: bool = False) -> Any:
+async def _fetch(url: str, params: dict[str, str] | None = None, *, as_text: bool = False,
+                 soql_errors: bool = False) -> Any:
     key = url + "?" + "&".join(f"{k}={v}" for k, v in sorted((params or {}).items()))
     hit = _cache.get(key)
     if hit and time.monotonic() - hit[0] < CACHE_TTL_S:
@@ -81,16 +87,29 @@ async def _fetch(url: str, params: dict[str, str] | None = None, *, as_text: boo
                 r = await client.get(url, params=params)
                 if r.status_code >= 500 or r.status_code == 429:
                     raise LiveSourceError(f"HTTP {r.status_code}")
+                if soql_errors and r.status_code == 400:
+                    raise SoqlQueryError(_soql_message(r))
                 r.raise_for_status()
                 value = r.text if as_text else r.json()
                 _cache[key] = (time.monotonic(), value)
                 return value
+            except SoqlQueryError:
+                raise
             except (httpx.HTTPError, LiveSourceError, ValueError) as e:
                 last = e
                 log.warning("live fetch %s failed (attempt %d): %s", url, attempt + 1, e)
                 if attempt < RETRIES:
                     await asyncio.sleep(RETRY_DELAY_S)
     raise LiveSourceError(f"{type(last).__name__}: {last}")
+
+
+def _soql_message(r: httpx.Response) -> str:
+    try:
+        body = r.json()
+        msg = str(body.get("message") or r.text) if isinstance(body, dict) else r.text
+    except ValueError:
+        msg = r.text
+    return f"Socrata rejected the query: {msg.split(chr(10))[0][:300]}"
 
 
 def _snapshot_as_of() -> str:
@@ -295,3 +314,7 @@ async def live_delays(iatas: list[str] | None = None) -> ToolResult[LiveDelaysDa
         data_confidence=DataConfidence(level="High", reasons=["real-time FAA NAS Status feed"]),
         caveats=caveats,
     )
+
+
+# The ad-hoc SoQL escape hatch shares this module's client, cache and transport (imported last: it uses them).
+from app.live.public_api import PUBLIC_DATASETS, query_public_api  # noqa: E402, F401

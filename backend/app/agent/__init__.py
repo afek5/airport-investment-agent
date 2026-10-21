@@ -2,6 +2,7 @@
 
 Core tools (SPEC §5): resolve_airports, rank_airports, airport_scorecard, compare_airports, route_mix,
 unmet_demand, live_traffic, od_demand, live_delays, query_snapshot, suggest_followups.
+Deferred (P4): query_public_api, a guarded live SoQL escape hatch over three whitelisted public datasets.
 The agent has no web, shell or write tools; query_snapshot is read-only DuckDB.
 
 An analytic answer is suggest_followups first, then the answer as the final message with no tool call after
@@ -27,8 +28,8 @@ from app.agent.answer import (  # noqa: F401 - re-exported
 from app.agent.display import GroupedNumbers
 from app.agent.prompt import SYSTEM_PROMPT
 from app.contracts import (
-    AdHocData, ComparisonData, FollowupsData, LiveDelaysData, LiveTrafficData, OdDemandData, RankingData,
-    ResolveData, RouteMixData, ScorecardData, ToolResult, UnmetDemandData, Weights,
+    AdHocData, ComparisonData, FollowupsData, LiveDelaysData, LiveTrafficData, OdDemandData, PublicApiData,
+    RankingData, ResolveData, RouteMixData, ScorecardData, ToolResult, UnmetDemandData, Weights,
 )
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,9 @@ CORE_TOOLS = (
     "resolve_airports", "rank_airports", "airport_scorecard", "compare_airports", "route_mix", "unmet_demand",
     "live_traffic", "od_demand", "live_delays", "query_snapshot", "suggest_followups",
 )
+# Deferred escape hatches registered after the core (HANDOFF P4); ALL_TOOLS is everything the agent can call.
+DEFERRED_TOOLS = ("query_public_api",)
+ALL_TOOLS = CORE_TOOLS + DEFERRED_TOOLS
 
 Iata = Annotated[str, Field(description="3-letter IATA airport code, e.g. 'SFO'", min_length=3, max_length=4)]
 State = Annotated[str, Field(description="2-letter US state code, e.g. 'MA'", min_length=2, max_length=2)]
@@ -234,6 +238,35 @@ async def live_delays(iatas: list[Iata] | None = None) -> ToolResult[LiveDelaysD
     """LIVE (FAA NAS Status): current ground stops, ground delay programs, arrival/departure delays and
     closures. Pass the airports you care about; `no_active_delay` lists the ones with nothing active now."""
     return await live.live_delays(iatas)
+
+
+@agent.tool_plain
+@_guarded
+async def query_public_api(
+    dataset: Literal["bts_airport_month", "dot_airfare_pairs", "dot_airfare_city_pairs"],
+    select: str | None = None,
+    where: str | None = None,
+    group: str | None = None,
+    order: str | None = None,
+    limit: Annotated[int, Field(ge=1, le=500)] = 100,
+) -> ToolResult[PublicApiData] | ToolError:
+    """LIVE escape hatch: one SoQL query on a whitelisted public dataset, only when no other tool answers
+    (e.g. fare history for one market by quarter). Pass clause bodies only, no `$` or `&`:
+    select="year,quarter,avg(fare) AS avg_fare", where="airport_1='BOS' AND airport_2='LAX'",
+    group="year,quarter", order="year DESC,quarter DESC". Aggregate in SoQL so the result holds the figure you
+    quote. Result is ad hoc (Data Confidence at most Medium) and the query is shown to the user.
+
+    - bts_airport_month (BTS r495-tyji, one row per origin airport × month, all carriers): origin_airport_code,
+      origin_airport_name, year (text), reporting_month (date, e.g. '2026-04-01T00:00:00.000'),
+      total_departures, total_passengers, total_seats, total_load_factor (%), total_freight_lbs,
+      domestic_departures, domestic_passengers, domestic_seats, domestic_load_factor.
+    - dot_airfare_pairs (DOT Consumer Airfare Report Table 1a, airport-pair markets × quarter): year, quarter,
+      airport_1, airport_2 (either order, so match both), city1, city2, nsmiles, passengers (per day),
+      fare (average one-way $), carrier_lg, large_ms (share 0–1), fare_lg, carrier_low, lf_ms, fare_low.
+    - dot_airfare_city_pairs (Table 6, city-pair markets of 10+ passengers a day × quarter): the same
+      columns without airport codes; city1/city2 look like 'Boston, MA (Metropolitan Area)'.
+    """
+    return await live.query_public_api(dataset, select=select, where=where, group=group, order=order, limit=limit)
 
 
 # ───────────────────────────── UI ─────────────────────────────

@@ -26,6 +26,7 @@ export const RENDERERS: Renderers = {
   od_demand: OdDemandEvidence,
   live_delays: LiveDelaysEvidence,
   query_snapshot: AdHocEvidence,
+  query_public_api: AdHocEvidence,
 };
 
 function renderBody(toolName: string, data: unknown): React.ReactNode {

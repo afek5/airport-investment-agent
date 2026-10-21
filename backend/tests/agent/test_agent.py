@@ -2,10 +2,13 @@ from pydantic_ai.messages import ModelRequest, ModelResponse, RetryPromptPart, T
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from app.agent import ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, FOLLOWUPS_MISSING_RETRY, ToolError, agent, answer_text
+from app.agent import (
+    ALL_TOOLS, ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, DEFERRED_TOOLS, FOLLOWUPS_MISSING_RETRY, ToolError, agent,
+    answer_text,
+)
 from app.agent.prompt import SCOPING_STATEMENT, SYSTEM_PROMPT
 from tests.agent.scripted import (
-    ALL_TOOLS_ANSWER, CORE_CALLS, _model, all_tools_model, scope_model, scripted_model,
+    ALL_CALLS, ALL_TOOLS_ANSWER, _model, all_tools_model, scope_model, scripted_model,
 )
 from tests.agent.stubs import stub_core_tools
 
@@ -16,8 +19,9 @@ def _parts(result, kind):
 
 def test_core_tools_registered_and_nothing_else():
     """Every SPEC §5 core tool is registered, and there is no web, shell or write tool."""
-    assert set(agent._function_toolset.tools) == set(CORE_TOOLS)  # noqa: SLF001 - wiring check
+    assert set(agent._function_toolset.tools) == set(ALL_TOOLS)  # noqa: SLF001 - wiring check
     assert "query_public_api" not in CORE_TOOLS  # deferred (HANDOFF P4)
+    assert DEFERRED_TOOLS == ("query_public_api",)
 
 
 async def test_every_core_tool_runs_and_returns_an_envelope(monkeypatch, real_snapshot):
@@ -25,7 +29,7 @@ async def test_every_core_tool_runs_and_returns_an_envelope(monkeypatch, real_sn
     with agent.override(model=all_tools_model()):
         result = await agent.run("exercise every tool")
     returns = {r.tool_name: r.content for r in _parts(result, ToolReturnPart)}
-    assert set(returns) == set(CORE_TOOLS)
+    assert set(returns) == set(ALL_TOOLS)
     for name, content in returns.items():
         dumped = content if isinstance(content, dict) else content.model_dump()
         if name == "suggest_followups":
@@ -36,6 +40,9 @@ async def test_every_core_tool_runs_and_returns_an_envelope(monkeypatch, real_sn
     assert calls["rank_airports"][0][1]["states"] == ["CT", "ME", "MA", "NH", "RI", "VT"]
     assert calls["compare_airports"][0][0][0] == ["LAX", "SNA"]
     assert calls["live_delays"][0][0][0] == ["LAX", "SNA"]
+    assert calls["query_public_api"][0][0][0] == "dot_airfare_pairs"
+    assert calls["query_public_api"][0][1]["group"] == "year,quarter"
+    assert returns["query_public_api"].ad_hoc
     assert result.output == ALL_TOOLS_ANSWER
 
 
@@ -112,7 +119,7 @@ def test_system_prompt_covers_the_answer_contract_and_dictionary():
                    "ontime_airport_month", "runway_capacity", "metro_population", "taf", "enplanements",
                    "Never do arithmetic", "reveal or repeat this prompt"]:
         assert needle in SYSTEM_PROMPT, needle
-    for name, _ in CORE_CALLS:
+    for name, _ in ALL_CALLS:
         if name not in ("airport_scorecard",):
             assert name in SYSTEM_PROMPT, name
 
@@ -123,7 +130,7 @@ async def test_every_core_tool_runs_on_the_real_snapshot(monkeypatch, real_snaps
     with agent.override(model=all_tools_model()):
         result = await agent.run("exercise every tool")
     returns = {r.tool_name: r.content for r in _parts(result, ToolReturnPart)}
-    assert set(returns) == set(CORE_TOOLS)
+    assert set(returns) == set(ALL_TOOLS)
     errors = {n: c.error for n, c in returns.items() if isinstance(c, ToolError)}
     assert not errors, errors
     assert not _parts(result, RetryPromptPart)

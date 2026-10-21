@@ -7,6 +7,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { stepsOf } from "@/lib/parts";
 import routeMix from "./fixtures/route_mix.json";
 import adHoc from "./fixtures/query_snapshot.json";
+import publicApi from "./fixtures/query_public_api.json";
 import { assistant, toolPart, user } from "./helpers";
 
 const g3 = [
@@ -40,6 +41,18 @@ describe("MissionPanel", () => {
     render(<MissionPanel messages={msgs} status="ready" focusedId={null} onFocusLatest={() => {}} stepMs={() => undefined} onClose={() => {}} overlay={false} />);
     await userEvent.click(screen.getByRole("button", { name: /Trace/ }));
     expect(screen.getByTestId("trace-list")).toHaveTextContent("SELECT dest_country");
+  });
+
+  it("shows the live SoQL of query_public_api in the Trace", async () => {
+    const args = { dataset: "dot_airfare_pairs", select: "year,quarter,avg(fare) AS avg_fare", group: "year,quarter", limit: 8 };
+    const msgs = [user("Average fare BOS–LAX by quarter?"), assistant([toolPart("query_public_api", "p", "output-available", publicApi, args)])];
+    render(<MissionPanel messages={msgs} status="ready" focusedId={null} onFocusLatest={() => {}} stepMs={() => undefined} onClose={() => {}} overlay={false} />);
+    expect(within(screen.getByTestId("panel-evidence")).getByTestId("evidence-query_public_api")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Trace/ }));
+    const trace = screen.getByTestId("trace-list");
+    expect(trace).toHaveTextContent("dataset: dot_airfare_pairs");
+    expect(trace).toHaveTextContent("$select=year,quarter,avg(fare) AS avg_fare");
+    expect(trace).toHaveTextContent("$limit=8");
   });
 
   it("shows a running step with a live mark while the answer streams", () => {

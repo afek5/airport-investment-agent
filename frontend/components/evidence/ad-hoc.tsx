@@ -1,21 +1,37 @@
-import type { AdHocData, ResolveData } from "@/lib/contracts";
+import type { AdHocData, PublicApiData, ResolveData } from "@/lib/contracts";
 import { fmtNum, HUB_SIZE } from "@/lib/format";
 import { DataTable, EvidenceTitle, Muted, Td, Th, Tr } from "./table";
 
-function cell(v: unknown): React.ReactNode {
+// Period labels read as written ("2026", not "2,026").
+const PERIOD_COL = /^(year|quarter|month|fiscal_year)$/;
+
+function cell(v: unknown, column: string): React.ReactNode {
   if (v == null) return <Muted>—</Muted>;
-  if (typeof v === "number") return fmtNum(v);
+  if (typeof v === "number") return PERIOD_COL.test(column) ? String(v) : fmtNum(v);
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 }
 
-export function AdHocEvidence({ data }: { data: AdHocData }) {
-  const numericCols = data.columns.map((_, ci) => data.rows.some((r) => typeof r[ci] === "number"));
+const isPublicApi = (d: AdHocData): d is PublicApiData => "dataset" in d && "resource_id" in d;
+
+/** Ad-hoc rows: query_snapshot (Snapshot SQL) and query_public_api (live SoQL on a whitelisted dataset). */
+export function AdHocEvidence({ data }: { data: AdHocData | PublicApiData }) {
+  const numericCols = data.columns.map((c, ci) => !PERIOD_COL.test(c) && data.rows.some((r) => typeof r[ci] === "number"));
+  const api = isPublicApi(data) ? data : null;
+  const cap = api ? `the ${api.limit}-row limit` : "the 200-row cap";
   return (
     <div className="space-y-3" data-testid="ad-hoc">
       <EvidenceTitle
-        title="Ad-hoc Snapshot query"
-        sub={`${data.row_count} row${data.row_count === 1 ? "" : "s"}${data.truncated ? " · truncated at the 200-row cap" : ""}`}
+        title={
+          api ? (
+            <>
+              Ad-hoc live query · <span className="num">{api.dataset}</span>
+            </>
+          ) : (
+            "Ad-hoc Snapshot query"
+          )
+        }
+        sub={`${api ? `${api.resource_id} · ` : ""}${data.row_count} row${data.row_count === 1 ? "" : "s"}${data.truncated ? ` · truncated at ${cap}` : ""}`}
       />
       <pre className="num overflow-x-auto whitespace-pre-wrap break-words rounded-[10px] bg-[var(--tint)] p-3 text-[12px] leading-[1.5]">
         {data.sql}
@@ -36,7 +52,7 @@ export function AdHocEvidence({ data }: { data: AdHocData }) {
               <Tr key={ri}>
                 {r.map((v, ci) => (
                   <Td key={ci} num={numericCols[ci]} className={numericCols[ci] ? undefined : "num"}>
-                    {cell(v)}
+                    {cell(v, data.columns[ci])}
                   </Td>
                 ))}
               </Tr>

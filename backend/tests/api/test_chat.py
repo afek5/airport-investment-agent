@@ -3,7 +3,7 @@ import json
 from fastapi.testclient import TestClient
 
 from app import db
-from app.agent import CORE_TOOLS, agent
+from app.agent import ALL_TOOLS, agent
 from app.api import guards
 from tests.agent.scripted import ALL_TOOLS_ANSWER, all_tools_model, scripted_model
 from tests.agent.stubs import stub_core_tools
@@ -57,10 +57,10 @@ def test_chat_streams_tool_parts_for_every_core_tool(client: TestClient, monkeyp
     assert r.status_code == 200
     evs = events(r.text)
     starts = [e["toolName"] for e in evs if e["type"] == "tool-input-start"]
-    assert starts == list(CORE_TOOLS)
+    assert starts == list(ALL_TOOLS)
     by_id = {e["toolCallId"]: e["toolName"] for e in evs if e["type"] == "tool-input-start"}
     outputs = {by_id[e["toolCallId"]]: e["output"] for e in evs if e["type"] == "tool-output-available"}
-    assert set(outputs) == set(CORE_TOOLS)
+    assert set(outputs) == set(ALL_TOOLS)
     for name, out in outputs.items():
         assert ("questions" in out) if name == "suggest_followups" else {"data", "sources", "data_confidence"} <= set(out)
     assert not [e for e in evs if e["type"] in ("error", "tool-output-error")]

@@ -11,7 +11,8 @@ import pytest
 
 from app import analytics, live
 from app.contracts import (
-    AdHocData, ComparisonData, DataConfidence, LiveDelaysData, LiveTrafficData, OdDemandData, RankingData,
+    AdHocData, ComparisonData, DataConfidence, LiveDelaysData, LiveTrafficData, OdDemandData, PublicApiData,
+    RankingData,
     ScorecardData, Source, ToolResult, UnmetDemandData, Weights,
 )
 
@@ -72,4 +73,8 @@ def stub_core_tools(monkeypatch: pytest.MonkeyPatch, stub_snapshot_tools: bool =
         OdDemandData(iata=iata, year=2026, quarter=1, markets=[]))))
     monkeypatch.setattr(live, "live_delays", arec("live_delays", lambda iatas=None: _env(
         LiveDelaysData(update_time="now", queried=iatas or [], delays=[], no_active_delay=iatas or []))))
+    monkeypatch.setattr(live, "query_public_api", arec("query_public_api", lambda dataset, limit=100, **kw: _env(
+        PublicApiData(sql="$select=year", columns=["year"], rows=[[2026]], row_count=1, truncated=False,
+                      dataset=dataset, resource_id="tfrh-tu9e", endpoint="https://example.invalid", limit=limit),
+        ad_hoc=True, dc=DataConfidence(level="Medium", reasons=["ad hoc"]))))
     return calls
