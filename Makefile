@@ -1,5 +1,5 @@
 # Airport Investment Intelligence Agent — common tasks. See README / docs/HANDOFF.md.
-.PHONY: dev test test-live snapshot build up down
+.PHONY: dev test test-live e2e snapshot build up down
 
 UV_BACKEND = uv run --project backend
 
@@ -14,11 +14,18 @@ dev:
 test:
 	cd backend && uv run pytest -q
 	$(UV_BACKEND) pytest -q ingest/tests
+	$(UV_BACKEND) pytest -q tests/e2e
 	cd frontend && npm test --if-present
 
 ## test-live: live e2e tests against real Claude (spends money; needs ANTHROPIC_API_KEY)
 test-live:
 	cd backend && set -a && . ../.env && set +a && uv run pytest -q -m live -s
+	set -a && . ./.env && set +a && $(UV_BACKEND) pytest -q -m live -s tests/e2e
+
+## e2e: Playwright smoke (access code → G3 → Evidence → reload) against docker compose (spends one answer)
+e2e:
+	docker compose up -d --build --wait
+	set -a && . ./.env && set +a && $(UV_BACKEND) pytest -q -m e2e -s tests/e2e
 
 ## snapshot: rebuild data/snapshot/*.parquet + manifest.json from data/raw/ (fails loudly on gaps)
 snapshot:
