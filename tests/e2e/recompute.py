@@ -8,7 +8,7 @@ golden test passing means two separate implementations of the SPEC agree on the 
 from __future__ import annotations
 
 import math
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -30,7 +30,7 @@ EUROPE = {"AD", "AL", "AT", "BA", "BE", "BG", "BY", "CH", "CY", "CZ", "DE", "DK"
           "PT", "RO", "RS", "SE", "SI", "SK", "SM", "UA", "XK"}
 
 
-@lru_cache(maxsize=None)
+@cache
 def table(name: str) -> pd.DataFrame:
     return pd.read_parquet(SNAPSHOT / f"{name}.parquet")
 

@@ -93,22 +93,97 @@ def ungrouped_counts(text: str) -> list[str]:
             if not ("." not in m.group(0) and 1900 <= int(m.group(0)) <= 2099)]
 
 
-COUNT_PHRASE = re.compile(r"\b(\d[\d,]*)\s+(?:distinct\s+)?(rows?|quarters?|months?)\b", re.IGNORECASE)
+# "N rows", "N quarters", "N distinct months", "N years": a whole count (grouped or not) right before its unit.
+COUNT_PHRASE = re.compile(r"(?<![\w.,])(\d{1,3}(?:,\d{3})+|\d+)\s+(?:distinct\s+)?(row|quarter|month|year)s?\b",
+                          re.IGNORECASE)
+# The tool's own words about its counts: the assumptions, `periods` ("100 quarters, 2001 Q2–2026 Q1") and each
+# source's window ("12 months, Aug 2025–Jul 2026").
+COUNT_TEXT_KEYS = {"assumptions", "periods", "window"}
+TABLE_SEPARATOR = re.compile(r"\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?")
 
 
-def misstated_counts(text: str, row_counts: set[int], period_counts: set[int]) -> list[str]:
-    """Row and period counts the answer states differently from the tool (query_public_api).
+def _count(v: Any) -> int | None:
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str) and re.fullmatch(r"\d{1,3}(?:,\d{3})+|\d+", v):  # app.agent.display groups 1,000+
+        return int(v.replace(",", ""))
+    return None
 
-    "N rows" must be a row_count the tool returned. "N quarters/months" must be a period_count, or a
-    subset of the periods returned (e.g. "the latest 12 quarters" of 100), and never a row_count that
-    differs from every period_count (100 rows over 37 quarters called "100 quarters")."""
+
+def stated_counts(text: str) -> list[tuple[int, str, str]]:
+    """(N, unit, phrase) for every "N rows/quarters/months/years" in the text; unit is singular, lower case."""
+    return [(int(m.group(1).replace(",", "")), m.group(2).lower(), m.group(0)) for m in COUNT_PHRASE.finditer(text)]
+
+
+def table_row_counts(text: str) -> set[int]:
+    """Data rows of each markdown table in the text (header and separator lines not counted)."""
+    counts: set[int] = set()
+    rows: int | None = None  # None until a table's separator line is seen
+    for line in [*text.splitlines(), ""]:
+        s = line.strip()
+        if s.startswith("|") and rows is None and TABLE_SEPARATOR.fullmatch(s) and "-" in s:
+            rows = 0
+        elif s.startswith("|") and rows is not None:
+            rows += 1
+        elif not s.startswith("|"):
+            if rows is not None:
+                counts.add(rows)
+            rows = None
+    return counts
+
+
+def tool_counts(results: list[Any]) -> tuple[set[int], set[int], dict[str, set[int]]]:
+    """What the tools say about counts: every row_count, the period_counts whose unit is unknown, and per
+    unit the period_counts of that unit plus the N of each "N <unit>s" in assumptions, periods and windows."""
+    rows: set[int] = set()
+    periods: set[int] = set()
+    said: dict[str, set[int]] = {}
+
+    def walk(x: Any, text: bool = False) -> None:
+        if isinstance(x, dict):
+            for k, v in x.items():
+                n = _count(v)
+                if k == "row_count" and n is not None:
+                    rows.add(n)
+                elif k == "period_count" and n is not None:
+                    # The count's unit is the one `periods` names ("100 quarters, …"), so it backs only that unit.
+                    named = stated_counts(x["periods"]) if isinstance(x.get("periods"), str) else []
+                    if named:
+                        said.setdefault(named[0][1], set()).add(n)
+                    else:
+                        periods.add(n)
+                walk(v, text or k in COUNT_TEXT_KEYS)
+        elif isinstance(x, (list, tuple)):
+            for v in x:
+                walk(v, text)
+        elif isinstance(x, str) and text:
+            for n, unit, _ in stated_counts(x):
+                said.setdefault(unit, set()).add(n)
+
+    for r in results:
+        walk(json.loads(r) if isinstance(r, str) and r[:1] in "{[" else r)
+    return rows, periods, said
+
+
+def misstated_counts(answer: str, tool_results: list[Any]) -> list[str]:
+    """Row and period counts in the answer that nothing in the run backs.
+
+    Each "N rows" / "N quarters" / "N months" / "N years" in the answer must equal one of:
+    - the tool's row_count (for rows) or period_count (for quarters, months or years: the unit its `periods`
+      names);
+    - the number of data rows in a markdown table the answer itself shows ("the latest 12 quarters" above a
+      12-row table);
+    - an N the tool states with the same unit in its assumptions, `periods` or source window ("12 months,
+      Aug 2025–Jul 2026" backs "12 months").
+    The unit has to match: 100 rows over 25 quarters called "100 quarters" fails, although the tool says
+    "100 rows" in its assumptions."""
+    rows, periods, said = tool_counts(tool_results)
+    tables = table_row_counts(answer)
     bad = []
-    for m in COUNT_PHRASE.finditer(text):
-        n, unit = int(m.group(1).replace(",", "")), m.group(2).lower()
-        if unit.startswith("row"):
-            ok = n in row_counts
-        else:
-            ok = n in period_counts or (bool(period_counts) and n < max(period_counts) and n not in row_counts)
-        if not ok:
-            bad.append(m.group(0))
+    for n, unit, phrase in stated_counts(answer):
+        allowed = (rows if unit == "row" else periods) | tables | said.get(unit, set())
+        if n not in allowed:
+            bad.append(phrase)
     return bad

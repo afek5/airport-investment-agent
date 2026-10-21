@@ -281,10 +281,10 @@ def render_examples() -> str:
     out = [
         "# Example transcripts: golden questions G1–G6",
         "",
-        "Recorded from one live run of `make test-live` (real Claude, model "
-        f"`{model_id()}`, Snapshot built {snapshot.manifest().get('built_at', '?')}). Every number in each "
-        "answer passed the number-grounding check: it appears in a tool result of the same run. G5 is a "
-        "follow-up in the G1 conversation. Regenerate with `WRITE_EXAMPLES=1 make test-live`.",
+        ("Recorded from one live run of `make test-live` (real Claude, model "
+         f"`{model_id()}`, Snapshot built {snapshot.manifest().get('built_at', '?')}). Every number in each "
+         "answer passed the number-grounding check: it appears in a tool result of the same run. G5 is a "
+         "follow-up in the G1 conversation. Regenerate with `WRITE_EXAMPLES=1 make test-live`."),
         "",
         f"Total model cost of the six answers: ${total:.2f}.",
         "",

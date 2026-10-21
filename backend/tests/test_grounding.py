@@ -39,12 +39,62 @@ def test_ungrouped_counts_flag_bare_counts_but_not_years_or_labels():
     assert ungrouped_counts("FY2024 to FY2030, 2019–2025, 1,005 departures") == []
 
 
-def test_misstated_counts_rows_versus_periods():
-    live = ("The table shows the most recent 12 quarters. The query returned 100 quarters, 2001 Q2 to 2026 Q1. "
-            "The query returned the first 100 rows.")
-    assert misstated_counts(live, row_counts={100}, period_counts={100}) == []
-    # 100 rows over 37 distinct quarters: calling them "100 quarters" is the defect.
-    assert misstated_counts("Window returned: 100 quarters", row_counts={100}, period_counts={37}) == ["100 quarters"]
-    assert misstated_counts("It returned 37 quarters in 120 rows", {100}, {37}) == ["120 rows"]
-    assert misstated_counts("over 40 quarters", {100}, {37}) == ["40 quarters"]
-    assert misstated_counts("5 quarters", {5}, set()) == ["5 quarters"]
+def _api(rows: int, quarters: int | None, span: str = "2001 Q2–2026 Q1", truncated: bool = False) -> dict:
+    """A query_public_api envelope as the tool returns it (app.live.public_api), counts and wording only."""
+    periods = f"{quarters} quarters, {span}" if quarters else None
+    meaning = f"One row is one airport-pair market in one quarter (Table 1a record). The result has {rows} rows"
+    if quarters is None:
+        meaning += " and no period columns, so it states no period count."
+    elif quarters == rows:
+        meaning += f" covering {quarters} distinct quarters ({span}): one row per quarter."
+    else:
+        meaning += (f" covering {quarters} distinct quarters ({span}), so one quarter can span several rows; count "
+                    "quarters from `periods`, rows from `row_count`.")
+    assumptions = ["Ad-hoc SoQL over tfrh-tu9e written by the agent; the query is shown with the result.", meaning]
+    if truncated:
+        assumptions.append(f"Only the first {rows} rows were returned (limit {rows}); more rows match the query, "
+                           "so the period count covers the returned rows only.")
+    return {"data": {"row_count": rows, "period_count": quarters, "periods": periods, "truncated": truncated},
+            "sources": [{"name": "DOT Consumer Airfare Report Table 1a", "window": periods}],
+            "assumptions": assumptions, "ad_hoc": True}
+
+
+def _table(n: int) -> str:
+    rows = [f"| {2026 - i // 4} | {4 - i % 4} | 345.59 |" for i in range(n)]
+    return "\n".join(["| Year | Quarter | Avg fare ($) |", "|---|---|---|", *rows])
+
+
+FULL = [_api(100, 100, truncated=True)]  # 100 rows, one per quarter, 2001 Q2–2026 Q1
+
+
+def test_misstated_counts_true_full_count_passes():
+    text = ("The query returned 100 quarters, from 2001 Q2 to 2026 Q1, in 100 rows. "
+            "Source: DOT Table 1a, window 100 quarters, 2001 Q2–2026 Q1.")
+    assert misstated_counts(text, FULL) == []
+
+
+def test_misstated_counts_a_subset_must_match_the_table_the_answer_shows():
+    text = "The table shows the latest 12 quarters.\n\n{}\n\nThe query returned 100 quarters."
+    assert misstated_counts(text.format(_table(12)), FULL) == []
+    # The old rule let any N below the returned count through; 12 quarters over a 10-row table is wrong.
+    assert misstated_counts(text.format(_table(10)), FULL) == ["12 quarters"]
+    assert misstated_counts("The latest 12 quarters averaged 345.59.", FULL) == ["12 quarters"]
+
+
+def test_misstated_counts_rows_are_not_quarters():
+    # 100 rows over 25 distinct quarters: "100 quarters" fails although the tool's assumptions say "100 rows".
+    many_rows = [_api(100, 25, span="2020 Q1–2026 Q1", truncated=True)]
+    assert misstated_counts("Window returned: 100 quarters", many_rows) == ["100 quarters"]
+    assert misstated_counts("It returned 100 rows covering 25 distinct quarters.", many_rows) == []
+    assert misstated_counts("It returned 37 quarters in 120 rows", [_api(100, 37)]) == ["120 rows"]
+    assert misstated_counts("over 40 quarters", [_api(100, 37)]) == ["40 quarters"]
+    assert misstated_counts("5 quarters", [_api(5, None)]) == ["5 quarters"]
+    assert misstated_counts("100 months", FULL) == ["100 months"]  # the unit must match too
+
+
+def test_misstated_counts_source_windows_and_grouped_counts():
+    window = [{"sources": [{"window": "12 months, Aug 2025–Jul 2026"}], "data": {"row_count": "1,005"}}]
+    assert misstated_counts("Window: 12 months, all carriers; 1,005 rows.", window) == []
+    assert misstated_counts("over 24 months", window) == ["24 months"]
+    # "year 2026, months 6 and 7" is not a count of 2,026 months.
+    assert misstated_counts("filtered to year 2026, months 6 and 7", window) == []

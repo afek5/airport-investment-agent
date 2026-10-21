@@ -22,13 +22,13 @@ import json
 import sys
 import warnings
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from geocode import GEOCODER_URL, cbsa_for  # noqa: E402
+from geocode import GEOCODER_URL, cbsa_for
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
@@ -243,8 +243,8 @@ def build_airports() -> dict:
     no_cbsa = df[df["cbsa_code"].isna()]["iata"].tolist()
     df = df.sort_values("iata").reset_index(drop=True)
     write(df, "airports")
-    notes = [f"CBSA: {sources.count('geocoder')} from the Census Geocoder, {sources.count('hand map')} from the "
-             f"hand map, {len(no_cbsa)} outside any metro/micro area: {no_cbsa}"]
+    notes = [(f"CBSA: {sources.count('geocoder')} from the Census Geocoder, {sources.count('hand map')} from the "
+              f"hand map, {len(no_cbsa)} outside any metro/micro area: {no_cbsa}")]
     if unmatched:
         notes.append(f"{len(unmatched)} airports without an OurAirports match: {unmatched}")
     if errors:
@@ -443,8 +443,8 @@ def build_t100_routes() -> dict:
         "url": T100_URL,
         "rows": len(agg),
         **window_entry(wanted),
-        "notes": ["rows with departures_performed == 0 dropped; service_class F = scheduled passenger, "
-                  "G = scheduled cargo, L/P = non-scheduled"],
+        "notes": [("rows with departures_performed == 0 dropped; service_class F = scheduled passenger, "
+                   "G = scheduled cargo, L/P = non-scheduled")],
     }
 
 
@@ -532,8 +532,8 @@ def build_ontime_airport_month() -> dict:
     df = pd.concat(frames, ignore_index=True).sort_values(["year", "month", "origin"]).reset_index(drop=True)
     write(df, "ontime_airport_month")
     absent = [f"{y}-{m:02d}" for y, m in wanted if (y, m) not in have]
-    notes = ["reporting carriers only (the largest US carriers), domestic flights; shares and rates are "
-             "fractions 0–1; nas_delay_min_per_flight = NAS-attributed delay minutes / operated flights"]
+    notes = [("reporting carriers only (the largest US carriers), domestic flights; shares and rates are "
+              "fractions 0–1; nas_delay_min_per_flight = NAS-attributed delay minutes / operated flights")]
     if absent:
         notes.append(f"target months not yet downloaded: {absent}")
     return {
@@ -605,8 +605,8 @@ def build_runway_capacity() -> dict:
         "rows": len(df),
         "notes": [
             "covers SFO, LAX, SNA and BOS only; any other airport has no runway_capacity row",
-            "SFO and BOS: the FAA no longer publishes their 2014 profiles, so rates come from the 2019 "
-            "editions (2014 Table 1 totals cited in source_note as a cross-check)",
+            ("SFO and BOS: the FAA no longer publishes their 2014 profiles, so rates come from the 2019 "
+             "editions (2014 Table 1 totals cited in source_note as a cross-check)"),
             "ifr_arrival_drop_pct = 100 × (1 − ifr_arrivals_hr / vfr_arrivals_hr)",
         ],
     }
@@ -639,7 +639,7 @@ def main(only: list[str] | None = None) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     manifest_path = OUT / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if (only and manifest_path.exists()) else {"tables": {}}
-    built_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    built_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     for name, fn in TABLES.items():
         if only and name not in only:
             continue

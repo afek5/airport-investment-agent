@@ -18,8 +18,8 @@ import threading
 
 import duckdb
 
-from app.analytics.constants import QUERY_ROW_CAP, QUERY_TIMEOUT_S
 from app.analytics.common import table_source
+from app.analytics.constants import QUERY_ROW_CAP, QUERY_TIMEOUT_S
 from app.contracts import AdHocData, DataConfidence, ToolResult
 from app.snapshot import get_conn, tables
 

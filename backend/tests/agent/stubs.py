@@ -11,9 +11,19 @@ import pytest
 
 from app import analytics, live
 from app.contracts import (
-    AdHocData, ComparisonData, DataConfidence, LiveDelaysData, LiveTrafficData, OdDemandData, PublicApiData,
+    AdHocData,
+    ComparisonData,
+    DataConfidence,
+    LiveDelaysData,
+    LiveTrafficData,
+    OdDemandData,
+    PublicApiData,
     RankingData,
-    ScorecardData, Source, ToolResult, UnmetDemandData, Weights,
+    ScorecardData,
+    Source,
+    ToolResult,
+    UnmetDemandData,
+    Weights,
 )
 
 SRC = [Source(name="stub", url="https://example.invalid", as_of="Jul 2026")]

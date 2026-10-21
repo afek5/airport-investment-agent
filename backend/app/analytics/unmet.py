@@ -8,13 +8,29 @@ import pandas as pd
 from app.analytics.common import has_table, in_months, is_missing, r1, table_source
 from app.analytics.compare import derived_columns
 from app.analytics.constants import (
-    CANNOT_DETERMINE, DRIVER_MIN_STRENGTH, DRIVER_REQUIRES_POSITIVE, HIGH_LF, IFR_DROP_STRENGTH_PER_PCT, ONTIME_SCOPE_CAVEAT, PASSENGER_CLASS,
-    SPILL_BUCKETS, SPILL_LABEL, SPILL_TOP_ROUTES, TAF_BASE_FY, TAF_GAP_FY,
+    CANNOT_DETERMINE,
+    DRIVER_MIN_STRENGTH,
+    DRIVER_REQUIRES_POSITIVE,
+    HIGH_LF,
+    IFR_DROP_STRENGTH_PER_PCT,
+    ONTIME_SCOPE_CAVEAT,
+    PASSENGER_CLASS,
+    SPILL_BUCKETS,
+    SPILL_LABEL,
+    SPILL_TOP_ROUTES,
+    TAF_BASE_FY,
+    TAF_GAP_FY,
 )
 from app.analytics.metrics import load_metrics
 from app.analytics.scoring import percentile
 from app.contracts import (
-    DataConfidence, EvidenceItem, ForecastGap, SpillRoute, SpillScenario, ToolResult, UnmetDemandData,
+    DataConfidence,
+    EvidenceItem,
+    ForecastGap,
+    SpillRoute,
+    SpillScenario,
+    ToolResult,
+    UnmetDemandData,
 )
 from app.snapshot import get_conn
 
@@ -87,9 +103,9 @@ def unmet_demand(iata: str) -> ToolResult[UnmetDemandData]:
     evidence: list[EvidenceItem] = []
     assumptions = [
         "Constraint Evidence is observed data; benchmarks are national medians of FAA Primary Airports.",
-        "Driver strength = the airport's national percentile on that indicator (IFR drop: 2 points per "
-        "percentage point of arrival-rate loss, capped at 100); indicators above the median become "
-        "why-drivers (passenger-minus-seat growth only when positive).",
+        ("Driver strength = the airport's national percentile on that indicator (IFR drop: 2 points per "
+         "percentage point of arrival-rate loss, capped at 100); indicators above the median become "
+         "why-drivers (passenger-minus-seat growth only when positive)."),
         "Current NAS status is a Live Signal from the live_delays tool, not part of this Snapshot evidence.",
     ]
     caveats = [ONTIME_SCOPE_CAVEAT]
@@ -193,8 +209,8 @@ def unmet_demand(iata: str) -> ToolResult[UnmetDemandData]:
         sources=srcs,
         assumptions=assumptions,
         data_confidence=DataConfidence(level="Medium", reasons=[
-            "Unmet Demand is argued from observed indicators and an official forecast; turned-away passengers "
-            "are not observed in any public data.",
+            ("Unmet Demand is argued from observed indicators and an official forecast; turned-away passengers "
+             "are not observed in any public data."),
             "The Spill Scenario rests on assumed, uncalibrated spill rates.",
             f"Windows: T-100 {mf.t100_window}; On-Time {mf.ontime_window}.",
         ]),

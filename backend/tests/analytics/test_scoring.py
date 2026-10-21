@@ -149,7 +149,7 @@ def test_scope_filters_and_pillar_ranking(scoring_snapshot):
     assert rank_airports(hub_sizes=["L"]).data.hub_sizes == ["L"]
     assert {a.iata for a in rank_airports(faa_region="wp").data.ranked} == {"SFO"}
     r = rank_airports(pillar="pressure")
-    assert [a.iata for a in r.data.ranked][0] == "SFO"
+    assert r.data.ranked[0].iata == "SFO"
     assert r.data.ranked[0].score == r.data.ranked[0].pillars.pressure
     assert rank_airports(top_n=2).data.ranked[-1].rank == 2
     with pytest.raises(ValueError):

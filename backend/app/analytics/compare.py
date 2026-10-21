@@ -8,8 +8,15 @@ import pandas as pd
 
 from app.analytics.common import is_missing, r1
 from app.analytics.constants import (
-    CONGESTION_INDEX_METRICS, METRICS, MIN_ONTIME_DEPARTURES, N_METRICS, ONTIME_SCOPE_CAVEAT, PILLAR_LABELS,
-    PILLARS, SCREENING_CAVEAT, T100_WINDOW_MONTHS,
+    CONGESTION_INDEX_METRICS,
+    METRICS,
+    MIN_ONTIME_DEPARTURES,
+    N_METRICS,
+    ONTIME_SCOPE_CAVEAT,
+    PILLAR_LABELS,
+    PILLARS,
+    SCREENING_CAVEAT,
+    T100_WINDOW_MONTHS,
 )
 from app.analytics.metrics import MetricFrame, load_metrics
 from app.analytics.scoring import as_weights, percentile, score_universe
@@ -95,12 +102,12 @@ def compare_airports(iatas: list[str], lens: Lens = "congestion") -> ToolResult[
             vals = [pcts[k][c] for k in CONGESTION_INDEX_METRICS]
             congestion_index[c] = None if any(is_missing(v) for v in vals) else r1(sum(vals) / len(vals))
         assumptions += [
-            f"On-Time metrics ({mf.ontime_window}) are flight-weighted over the reporting carriers' departures; "
-            f"they are left unmeasured below {MIN_ONTIME_DEPARTURES:,} departures.",
-            f"Departures per month and per runway per day use all T-100 service classes ({mf.t100_window}) and "
-            "the OurAirports runway count.",
-            "congestion_index = mean national percentile of delay share, taxi-out and NAS delay per departure; "
-            "it is a congestion lens, not the Investment Opportunity Score.",
+            (f"On-Time metrics ({mf.ontime_window}) are flight-weighted over the reporting carriers' departures; "
+             f"they are left unmeasured below {MIN_ONTIME_DEPARTURES:,} departures."),
+            (f"Departures per month and per runway per day use all T-100 service classes ({mf.t100_window}) and "
+             "the OurAirports runway count."),
+            ("congestion_index = mean national percentile of delay share, taxi-out and NAS delay per departure; "
+             "it is a congestion lens, not the Investment Opportunity Score."),
             "Current NAS status is a Live Signal from the live_delays tool and is not part of this comparison.",
         ]
         caveats.append(ONTIME_SCOPE_CAVEAT)

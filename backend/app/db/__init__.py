@@ -174,7 +174,7 @@ class PgStore:
     async def ping(self) -> bool:
         try:
             return await self.pool.fetchval("SELECT 1") == 1
-        except Exception:  # noqa: BLE001 - health reports, never raises
+        except Exception:  # health reports, never raises
             log.exception("db ping failed")
             return False
 

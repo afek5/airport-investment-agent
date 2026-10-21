@@ -23,7 +23,14 @@ from typing import Any
 import httpx
 
 from app.contracts import (
-    DataConfidence, LiveDelay, LiveDelaysData, LiveTrafficData, LiveTrafficMonth, OdDemandData, OdMarket, Source,
+    DataConfidence,
+    LiveDelay,
+    LiveDelaysData,
+    LiveTrafficData,
+    LiveTrafficMonth,
+    OdDemandData,
+    OdMarket,
+    Source,
     ToolResult,
 )
 
@@ -192,11 +199,11 @@ async def live_traffic(iata: str, months: int = 12) -> ToolResult[LiveTrafficDat
     return ToolResult[LiveTrafficData](
         data=data,
         sources=[Source(name=BTS_NAME, url=BTS_URL, as_of=_label(last.year, last.month), window=window)],
-        assumptions=["All carriers and all service classes departing the airport, as BTS publishes them; "
-                     "load_factor_pct is BTS's total_load_factor."],
+        assumptions=[("All carriers and all service classes departing the airport, as BTS publishes them; "
+                      "load_factor_pct is BTS's total_load_factor.")],
         data_confidence=DataConfidence(level="High", reasons=["official BTS monthly T-100 summary"]),
-        caveats=["The BTS summary lags the TranStats T-100 download by about 3 months, so it can end earlier "
-                 "than the Snapshot.", LIVE_CAVEAT],
+        caveats=[("The BTS summary lags the TranStats T-100 download by about 3 months, so it can end earlier "
+                  "than the Snapshot."), LIVE_CAVEAT],
     )
 
 
@@ -243,13 +250,13 @@ async def od_demand(iata: str, top_n: int = 10) -> ToolResult[OdDemandData]:
     return ToolResult[OdDemandData](
         data=OdDemandData(iata=code, year=y, quarter=q, markets=markets[:top_n]),
         sources=[Source(name=DOT_NAME, url=DOT_URL, as_of=f"{y} Q{q}", window=f"{y} Q{q} (one quarter)")],
-        assumptions=["passengers_per_day is the average daily one-way O&D passengers in the airport-pair market "
-                     "over the quarter; large_ms_pct is the largest carrier's market share, lf_ms_pct the "
-                     "lowest-fare carrier's share."],
+        assumptions=[("passengers_per_day is the average daily one-way O&D passengers in the airport-pair market "
+                      "over the quarter; large_ms_pct is the largest carrier's market share, lf_ms_pct the "
+                      "lowest-fare carrier's share.")],
         data_confidence=DataConfidence(level="Medium", reasons=[
             "derived from the DB1B 10% ticket sample", "one quarter of data"]),
-        caveats=["The report covers only the largest domestic (contiguous-US) city-pair markets; international "
-                 "and small markets are not included.", LIVE_CAVEAT],
+        caveats=[("The report covers only the largest domestic (contiguous-US) city-pair markets; international "
+                  "and small markets are not included."), LIVE_CAVEAT],
     )
 
 
@@ -283,7 +290,7 @@ def parse_nas(xml: str) -> tuple[str | None, list[LiveDelay]]:
                                         trend=_text(ad, "Trend")))
         for a in dt.iter("Airport"):
             reason = _text(a, "Reason")
-            ga_only = bool(reason and re.search(r"NON[\s-]*SKED\s+TRANSIENT\s+GA", reason, re.I))
+            ga_only = bool(reason and re.search(r"NON[\s-]*SKED\s+TRANSIENT\s+GA", reason, re.IGNORECASE))
             delays.append(LiveDelay(iata=_text(a, "ARPT") or "",
                                     kind="Closure notice (non-scheduled transient GA only)" if ga_only
                                     else "Airport Closure",
@@ -303,8 +310,8 @@ async def live_delays(iatas: list[str] | None = None) -> ToolResult[LiveDelaysDa
         delays = [d for d in delays if d.iata in queried]
     impacted = {d.iata for d in delays if not d.kind.startswith("Closure notice")}
     no_active = [c for c in queried if c not in impacted]
-    caveats = ["Only airports with an active event appear in the FAA feed; an airport that is not listed has "
-               "no active delay right now.", LIVE_CAVEAT]
+    caveats = [("Only airports with an active event appear in the FAA feed; an airport that is not listed has "
+                "no active delay right now."), LIVE_CAVEAT]
     if any(d.kind.startswith("Closure notice") for d in delays):
         caveats.insert(0, "A 'Closure notice (non-scheduled transient GA only)' restricts only non-scheduled "
                           "general aviation; airline operations are not affected.")

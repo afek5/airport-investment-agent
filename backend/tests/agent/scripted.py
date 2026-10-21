@@ -13,7 +13,13 @@ import json
 from collections.abc import AsyncIterator, Callable
 
 from pydantic_ai.messages import (
-    ModelMessage, ModelRequest, ModelResponse, TextPart, ThinkingPart, ToolCallPart, ToolReturnPart,
+    ModelMessage,
+    ModelRequest,
+    ModelResponse,
+    TextPart,
+    ThinkingPart,
+    ToolCallPart,
+    ToolReturnPart,
 )
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, DeltaToolCalls, FunctionModel
 

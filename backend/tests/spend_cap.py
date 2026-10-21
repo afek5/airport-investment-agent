@@ -16,7 +16,7 @@ import functools
 import json
 import os
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LEDGER = Path(os.environ.get("LIVE_SPEND_LEDGER", Path.home() / ".airport-agent" / "live_spend.json"))
@@ -31,7 +31,7 @@ class SpendCapReached(RuntimeError):
 def _load() -> dict:
     if not LEDGER.exists():
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
-        data = {"cap_usd": DEFAULT_CAP_USD, "since": datetime.now(timezone.utc).isoformat(), "pytest_usd": 0.0}
+        data = {"cap_usd": DEFAULT_CAP_USD, "since": datetime.now(UTC).isoformat(), "pytest_usd": 0.0}
         LEDGER.write_text(json.dumps(data, indent=2))
     return json.loads(LEDGER.read_text())
 
@@ -41,7 +41,7 @@ def app_spend_since(since: str) -> float:
     sql = f"SELECT coalesce(sum(cost_usd), 0) FROM usage_log WHERE created_at >= '{since}'"
     try:
         out = subprocess.run(["docker", "exec", DB_CONTAINER, "psql", "-U", "airport", "-d", "airport", "-tAc", sql],
-                             capture_output=True, text=True, timeout=10)
+                             check=False, capture_output=True, text=True, timeout=10)
         return float(out.stdout.strip()) if out.returncode == 0 and out.stdout.strip() else 0.0
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return 0.0
@@ -87,7 +87,7 @@ def install() -> None:
         record(cost_usd(result.usage, model_id()))
         return result
 
-    run._spend_capped = True
+    run._spend_capped = True  # noqa: SLF001 - marks our own wrapper so the cap is installed once
     Agent.run = run
 
 

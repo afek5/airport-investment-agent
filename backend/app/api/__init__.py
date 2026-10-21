@@ -22,7 +22,12 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.ui.vercel_ai import VercelAIAdapter
 from pydantic_ai.ui.vercel_ai.response_types import (
-    DoneChunk, FinishChunk, StartChunk, TextDeltaChunk, TextEndChunk, TextStartChunk,
+    DoneChunk,
+    FinishChunk,
+    StartChunk,
+    TextDeltaChunk,
+    TextEndChunk,
+    TextStartChunk,
 )
 from pydantic_ai.usage import RunUsage
 
@@ -72,7 +77,7 @@ async def health() -> dict:
         store = await get_store()
         db = "ok" if await store.ping() else "error"
         db_kind = store.kind
-    except Exception:  # noqa: BLE001 - health reports, never raises
+    except Exception:  # health reports, never raises
         log.exception("store unavailable")
         db, db_kind = "error", "unknown"
     return {
@@ -192,7 +197,7 @@ async def chat(request: Request) -> Response:
             await asyncio.shield(task)
         except asyncio.CancelledError:  # client went away; the shielded write still completes
             pass
-        except Exception:  # noqa: BLE001 - logging usage must never break the answer
+        except Exception:  # logging usage must never break the answer
             log.exception("usage log write failed")
 
     if isinstance(response, StreamingResponse):

@@ -14,6 +14,12 @@ from app.analytics.route_mix import route_mix
 from app.analytics.unmet import unmet_demand
 
 __all__ = [
-    "resolve_airports", "route_mix", "rank_airports", "airport_scorecard", "compare_airports",
-    "unmet_demand", "query_snapshot", "UnsafeQueryError",
+    "UnsafeQueryError",
+    "airport_scorecard",
+    "compare_airports",
+    "query_snapshot",
+    "rank_airports",
+    "resolve_airports",
+    "route_mix",
+    "unmet_demand",
 ]

@@ -76,7 +76,8 @@ Open <http://localhost:3000>. Without `DATABASE_URL` the backend keeps sessions 
 
 | Command | What it does |
 |---|---|
-| `make test` | Offline tests: scoring unit tests, golden-tool recomputation, API guards, frontend renderers and charts. No API spend. |
+| `make lint` | Ruff over `backend/app`, `backend/tests`, `ingest` and `tests/e2e` (config in `backend/pyproject.toml`) and the frontend ESLint, failing on any finding or warning. |
+| `make test` | `make lint`, then the offline tests: scoring unit tests, golden-tool recomputation, API guards, the grounding and count checks on recorded live answers, frontend renderers and charts. No API spend. |
 | `make test-live` | Live end-to-end runs of the six golden questions against real Claude, with the number-grounding check. Spends money. |
 | `make e2e` | Playwright smoke: access code, ask the Anchorage question, Evidence renders, reload keeps the conversation. Spends one answer. |
 | `make build` / `make up` | Build the production image / run app + Postgres at :8000. |

@@ -25,9 +25,7 @@ ONTIME_REPORTING = "FGJ"
 
 
 def _hidden(page: str, name: str) -> str:
-    m = re.search(r'name="%s"[^>]*value="([^"]*)"' % name, page) or re.search(
-        r'id="%s" value="([^"]*)"' % name, page
-    )
+    m = re.search(rf'name="{name}"[^>]*value="([^"]*)"', page) or re.search(rf'id="{name}" value="([^"]*)"', page)
     return m.group(1) if m else ""
 
 

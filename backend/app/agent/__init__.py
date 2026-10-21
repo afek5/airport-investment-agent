@@ -23,13 +23,28 @@ from pydantic_ai.usage import UsageLimits
 
 from app import analytics, live
 from app.agent.answer import (  # noqa: F401 - re-exported
-    ANSWER_NOT_DELIVERED_RETRY, FOLLOWUPS_MISSING_RETRY, answer_text, validate,
+    ANSWER_NOT_DELIVERED_RETRY,
+    FOLLOWUPS_MISSING_RETRY,
+    answer_text,
+    validate,
 )
 from app.agent.display import GroupedNumbers
 from app.agent.prompt import SYSTEM_PROMPT
 from app.contracts import (
-    AdHocData, ComparisonData, FollowupsData, LiveDelaysData, LiveTrafficData, OdDemandData, PublicApiData,
-    RankingData, ResolveData, RouteMixData, ScorecardData, ToolResult, UnmetDemandData, Weights,
+    AdHocData,
+    ComparisonData,
+    FollowupsData,
+    LiveDelaysData,
+    LiveTrafficData,
+    OdDemandData,
+    PublicApiData,
+    RankingData,
+    ResolveData,
+    RouteMixData,
+    ScorecardData,
+    ToolResult,
+    UnmetDemandData,
+    Weights,
 )
 
 log = logging.getLogger(__name__)

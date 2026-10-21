@@ -54,8 +54,7 @@ async def test_fare_history_uses_query_public_api_and_is_grounded(real_snapshot)
     assert not missing, f"ungrounded numbers in answer: {missing}"
     assert not ungrouped_counts(answer), f"counts without thousands separators: {ungrouped_counts(answer)}"
 
-    # Counts are described as the tool states them: "N rows" is a row_count, "N quarters/months" a period count.
-    row_counts = {c["data"]["row_count"] for c in content}
-    period_counts = {c["data"].get("period_count") for c in content} - {None}
-    wrong = misstated_counts(answer, row_counts, period_counts)
-    assert not wrong, f"counts not as the tool stated them (rows {row_counts}, periods {period_counts}): {wrong}"
+    # Counts are described as the tool states them: "N rows" is a row_count, "N quarters/months" a period count,
+    # the rows of the answer's own table, or an N the tool's assumptions or periods state with that unit.
+    wrong = misstated_counts(answer, payloads)
+    assert not wrong, f"counts not backed by the tool or the answer's table: {wrong}"

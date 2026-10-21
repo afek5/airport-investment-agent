@@ -16,7 +16,13 @@ import pandas as pd
 
 from app.analytics.common import coverage_level, is_missing
 from app.analytics.constants import (
-    DEFAULT_WEIGHTS, IMPUTED_PERCENTILE, METRICS, MISSING_REASONS, PILLAR_FLOOR, PILLAR_LABELS, PILLARS,
+    DEFAULT_WEIGHTS,
+    IMPUTED_PERCENTILE,
+    METRICS,
+    MISSING_REASONS,
+    PILLAR_FLOOR,
+    PILLAR_LABELS,
+    PILLARS,
 )
 from app.contracts import Weights
 
@@ -103,7 +109,7 @@ def score_universe(df: pd.DataFrame, weights: Weights) -> pd.DataFrame:
     out["level"] = [coverage_level(m) for m in measured]
     out["national_rank"] = rank_by(out, "score")
     out["hub_rank"] = pd.Series(pd.NA, index=out.index, dtype="Int64")
-    for _hub, idx in out[out["score"].notna()].groupby("hub_size").groups.items():
+    for idx in out[out["score"].notna()].groupby("hub_size").groups.values():
         sub = out.loc[idx]
         out.loc[idx, "hub_rank"] = rank_by(sub, "score")
     return out

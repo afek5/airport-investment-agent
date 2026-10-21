@@ -1,5 +1,5 @@
 # Airport Investment Intelligence Agent — common tasks. See README / docs/HANDOFF.md.
-.PHONY: dev test test-live e2e snapshot build up down spend
+.PHONY: dev lint test test-live e2e snapshot build up down spend
 
 UV_BACKEND = uv run --project backend
 
@@ -10,8 +10,13 @@ dev:
 	(cd frontend && npm run dev) & \
 	wait
 
-## test: offline tests (no API spend)
-test:
+## lint: ruff over every Python tree (config: backend/pyproject.toml [tool.ruff]) and the frontend ESLint
+lint:
+	$(UV_BACKEND) ruff check backend/app backend/tests ingest tests/e2e
+	cd frontend && npm run lint -- --max-warnings=0
+
+## test: lint, then the offline tests (no API spend)
+test: lint
 	cd backend && uv run pytest -q
 	$(UV_BACKEND) pytest -q ingest/tests
 	$(UV_BACKEND) pytest -q tests/e2e

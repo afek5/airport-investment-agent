@@ -1,0 +1,18 @@
+{
+  "recorded_from": "The last green live run of backend/tests/agent/test_live_public_api.py (make test-live, 2026-10-22, commit 5484ec4; the same run that regenerated docs/examples.md in 245986f). `answer` is the printed '--- answer ---' block, verbatim.",
+  "question": "What was the average fare BOS–LAX by quarter?",
+  "tool": "query_public_api",
+  "args": {
+    "dataset": "dot_airfare_pairs",
+    "select": "year,quarter,airport_1,airport_2,passengers,fare,carrier_lg,large_ms,carrier_low,fare_low",
+    "where": "(airport_1='BOS' AND airport_2='LAX') OR (airport_1='LAX' AND airport_2='BOS')",
+    "order": "year DESC,quarter DESC",
+    "limit": 100
+  },
+  "returned": {
+    "rows": 100,
+    "truncated": true,
+    "periods": "100 quarters, 2001 Q2–2026 Q1"
+  },
+  "answer": "**Answer**\n\nThis is an ad hoc result from the DOT Consumer Airfare Report, Table 1a. It gives the average one-way fare for the BOS–LAX airport pair. The latest quarter, 2026 Q1, is $345.59. The table below shows the last 13 quarters.\n\n| Year | Quarter | Avg one-way fare ($) | Passengers/day | Largest carrier (share) |\n|---|---|---|---|---|\n| 2026 | 1 | 345.59 | 2,425.74 | B6 (0.3148) |\n| 2025 | 4 | 375.7 | 2,957.2 | B6 (0.3587) |\n| 2025 | 3 | 361.82 | 3,105.03 | B6 (0.4024) |\n| 2025 | 2 | 363.31 | 3,388.24 | B6 (0.402) |\n| 2025 | 1 | 327.51 | 2,464.56 | B6 (0.4365) |\n| 2024 | 4 | 351.7 | 3,466.74 | B6 (0.374) |\n| 2024 | 3 | 337.94 | 3,630.33 | B6 (0.3849) |\n| 2024 | 2 | 388.17 | 3,360.77 | B6 (0.3641) |\n| 2024 | 1 | 357.96 | 2,571.87 | B6 (0.3675) |\n| 2023 | 4 | 387.62 | 3,153.48 | B6 (0.4037) |\n| 2023 | 3 | 365.79 | 3,545.87 | B6 (0.3437) |\n| 2023 | 2 | 415.61 | 3,272.2 | B6 (0.3314) |\n| 2023 | 1 | 335.86 | 2,606.11 | B6 (0.3674) |\n\n**Why**\n\n- The fare is seasonal. Q1 is the lowest quarter each year (2023 Q1 335.86, 2025 Q1 327.51) and Q2 or Q4 is usually higher.\n- The query returned 100 quarters, from 2001 Q2 to 2026 Q1. I show only the recent ones here.\n- Over that history, the 2022 Q2 fare (436.55) is the highest of the returned quarters I looked at, and 2004 Q2 (195.94) is among the lowest. In 2022 Q2 the largest carrier was DL (0.3122).\n- JetBlue (B6) has been the largest carrier in every quarter shown since 2023, with a share between 0.3148 and 0.4365. UA is the low-fare carrier in most of those quarters. Its fare in 2026 Q1 was 291.81.\n\n**Assumptions & scope**\n\n- I read \"BOS–LAX\" as the airport pair, matching both orders (BOS–LAX and LAX–BOS). The city-pair market (Table 6) would be a different series.\n- The query hit the 100-row limit, so older quarters before 2001 Q2 may exist but were not returned. All 100 returned quarters are distinct, one row each.\n- Fares are average one-way fares from the DB1B 10% ticket sample. Only the largest domestic markets are published.\n- Values are rounded to 2 decimals by the source. This is a Live Signal and never changes an Investment Opportunity Score.\n\n**Data Confidence:** Medium. The query is ad hoc and outside the scoring methodology, and the data come from the DB1B 10% ticket sample. Source: DOT Consumer Airfare Report Table 1a (tfrh-tu9e), As-of Date 2026 Q1, window 100 quarters, 2001 Q2–2026 Q1."
+}

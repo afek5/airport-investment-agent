@@ -3,12 +3,23 @@ from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from app.agent import (
-    ALL_TOOLS, ANSWER_NOT_DELIVERED_RETRY, CORE_TOOLS, DEFERRED_TOOLS, FOLLOWUPS_MISSING_RETRY, ToolError, agent,
+    ALL_TOOLS,
+    ANSWER_NOT_DELIVERED_RETRY,
+    CORE_TOOLS,
+    DEFERRED_TOOLS,
+    FOLLOWUPS_MISSING_RETRY,
+    ToolError,
+    agent,
     answer_text,
 )
 from app.agent.prompt import SCOPING_STATEMENT, SYSTEM_PROMPT
 from tests.agent.scripted import (
-    ALL_CALLS, ALL_TOOLS_ANSWER, _model, all_tools_model, scope_model, scripted_model,
+    ALL_CALLS,
+    ALL_TOOLS_ANSWER,
+    _model,
+    all_tools_model,
+    scope_model,
+    scripted_model,
 )
 from tests.agent.stubs import stub_core_tools
 

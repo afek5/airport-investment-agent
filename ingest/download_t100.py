@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from transtats import T100_SEGMENT_ALL, download_months, months_between  # noqa: E402
+from transtats import T100_SEGMENT_ALL, download_months, months_between
 
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "data" / "raw" / "t100"

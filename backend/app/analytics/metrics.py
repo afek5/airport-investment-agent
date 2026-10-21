@@ -13,7 +13,12 @@ import pandas as pd
 
 from app.analytics.common import has_table, in_months, last_months, table_source, window_label
 from app.analytics.constants import (
-    MIN_ONTIME_DEPARTURES, ONTIME_WINDOW_MONTHS, PASSENGER_CLASS, T100_WINDOW_MONTHS, TAF_BASE_FY, TAF_HORIZON_FY,
+    MIN_ONTIME_DEPARTURES,
+    ONTIME_WINDOW_MONTHS,
+    PASSENGER_CLASS,
+    T100_WINDOW_MONTHS,
+    TAF_BASE_FY,
+    TAF_HORIZON_FY,
 )
 from app.contracts import Source
 from app.snapshot import get_conn

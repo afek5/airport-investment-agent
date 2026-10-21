@@ -1,0 +1,2 @@
+# Lets ruff find the project lint config (backend/pyproject.toml [tool.ruff]) for ingest/ and tests/e2e too.
+extend = "backend/pyproject.toml"

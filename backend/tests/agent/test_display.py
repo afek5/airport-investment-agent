@@ -68,5 +68,5 @@ async def test_model_sees_grouped_numbers_history_keeps_raw(monkeypatch, real_sn
     with agent.override(model=_model(step)):
         result = await agent.run("unmet demand at SFO")
     assert '"enplanements_to":"30,516,426"' in seen[0] and '"from_fy":2024' in seen[0] and '"to_fy":2030' in seen[0]
-    stored = [p for m in result.all_messages() for p in m.parts if isinstance(p, ToolReturnPart)][0]
+    stored = next(p for m in result.all_messages() for p in m.parts if isinstance(p, ToolReturnPart))
     assert stored.content.data.forecast_gap.enplanements_to == 30516426

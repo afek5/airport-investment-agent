@@ -23,6 +23,7 @@ dev = [
     "playwright>=1.64.0",
     "pytest>=8",
     "pytest-asyncio>=0.24",
+    "ruff==0.16.0",
 ]
 
 [tool.uv]
@@ -34,3 +35,18 @@ pythonpath = ["."]
 markers = ["live: calls the real Anthropic API (spends money); run with -m live"]
 addopts = "-m 'not live'"
 asyncio_mode = "auto"
+
+# One lint config for every Python tree: backend/app, backend/tests, ../ingest and ../tests/e2e (the root
+# ruff.toml extends this file so those trees find it too). `make lint` runs it, and `make test` runs lint first.
+# Ruff's own default rule set applies, plus the rules below.
+[tool.ruff]
+src = [".", "..", "../ingest"]
+line-length = 120  # the house width; ruff only uses it to wrap sorted imports (E501 is not enabled)
+
+[tool.ruff.lint]
+# The code marks its deliberate exceptions to these rules with noqa (path setup before imports,
+# re-exports, broad catches turned into ToolError, the shared live client); enabling them keeps
+# those markers checked instead of dead.
+extend-select = ["E402", "F401", "BLE001", "SLF001"]
+# UP046: ToolResult stays a typing.Generic pydantic model (the tool contract), PEP 695 syntax is style only.
+ignore = ["UP046"]

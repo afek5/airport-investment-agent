@@ -56,7 +56,7 @@ def pg_dsn(tmp_path_factory: pytest.TempPathFactory) -> Iterator[str]:
     try:
         yield f"postgresql://postgres@127.0.0.1:{port}/postgres"
     finally:
-        subprocess.run([pg_ctl, "-D", str(data), "-m", "immediate", "stop"], capture_output=True)
+        subprocess.run([pg_ctl, "-D", str(data), "-m", "immediate", "stop"], check=False, capture_output=True)
 
 
 async def _reset_pg(dsn: str) -> None:

@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 from app.analytics.constants import (
-    ALL_CARGO_CLASSES, CARGO_HEAVY_SHARE_PCT, LONG_HAUL_MILES, PASSENGER_CLASS, SERVICE_CLASS_LABELS,
-    T100_SOURCE_NAME, T100_URL, TOP_DESTINATIONS,
+    ALL_CARGO_CLASSES,
+    CARGO_HEAVY_SHARE_PCT,
+    LONG_HAUL_MILES,
+    PASSENGER_CLASS,
+    SERVICE_CLASS_LABELS,
+    T100_SOURCE_NAME,
+    T100_URL,
+    TOP_DESTINATIONS,
 )
 from app.contracts import (
-    DataConfidence, LongHaulDestination, RouteMixData, ServiceClassRow, Share, Source, ToolResult,
+    DataConfidence,
+    LongHaulDestination,
+    RouteMixData,
+    ServiceClassRow,
+    Share,
+    Source,
+    ToolResult,
 )
 from app.snapshot import get_conn
 

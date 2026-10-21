@@ -9,14 +9,31 @@ import pandas as pd
 
 from app.analytics.common import dedupe, lowest_level, r1
 from app.analytics.constants import (
-    HUB_SIZE_ALIASES, METRICS, MIN_ONTIME_DEPARTURES, N_METRICS, ONTIME_SCOPE_CAVEAT, PILLAR_LABELS, PILLARS,
-    SCREENING_CAVEAT, TAF_BASE_FY, TAF_HORIZON_FY,
+    HUB_SIZE_ALIASES,
+    METRICS,
+    MIN_ONTIME_DEPARTURES,
+    N_METRICS,
+    ONTIME_SCOPE_CAVEAT,
+    PILLAR_LABELS,
+    PILLARS,
+    SCREENING_CAVEAT,
+    TAF_BASE_FY,
+    TAF_HORIZON_FY,
 )
 from app.analytics.metrics import MetricFrame, load_metrics
 from app.analytics.scoring import as_weights, not_ranked_reason, pillar_metrics, rank_by, score_universe
 from app.contracts import (
-    Coverage, DataConfidence, MetricRow, NotRankedAirport, PillarBreakdown, PillarScores, RankedAirport,
-    RankingData, ScorecardData, ToolResult, Weights,
+    Coverage,
+    DataConfidence,
+    MetricRow,
+    NotRankedAirport,
+    PillarBreakdown,
+    PillarScores,
+    RankedAirport,
+    RankingData,
+    ScorecardData,
+    ToolResult,
+    Weights,
 )
 
 PillarArg = Literal["overall", "momentum", "pressure", "scale"]
@@ -30,21 +47,21 @@ def scored_universe(weights: Weights) -> tuple[MetricFrame, pd.DataFrame]:
 def methodology_assumptions(mf: MetricFrame, weights: Weights, custom: bool) -> list[str]:
     w = weights
     out = [
-        f"Universe: {len(mf.df)} FAA Primary Airports; every metric is a Percentile Score (0–100) among the "
-        "Primary Airports that have it.",
-        f"Pillar Weights{' (custom, normalised to sum 1)' if custom else ' (defaults)'}: "
-        f"Demand Momentum {w.momentum:.2f}, Capacity Pressure {w.pressure:.2f}, Market Scale {w.scale:.2f}.",
-        f"Demand Momentum = 0.60 × TAF enplanement CAGR FY{TAF_BASE_FY}→FY{TAF_HORIZON_FY} (incl. international) "
-        "+ 0.40 × CY2024→CY2025 enplanement growth.",
-        f"Capacity Pressure = 0.40 × class F Load Factor ({mf.t100_window}) + 0.30 × share of departures delayed "
-        f"≥15 min + 0.30 × average taxi-out ({mf.ontime_window}).",
+        (f"Universe: {len(mf.df)} FAA Primary Airports; every metric is a Percentile Score (0–100) among the "
+         "Primary Airports that have it."),
+        (f"Pillar Weights{' (custom, normalised to sum 1)' if custom else ' (defaults)'}: "
+         f"Demand Momentum {w.momentum:.2f}, Capacity Pressure {w.pressure:.2f}, Market Scale {w.scale:.2f}."),
+        (f"Demand Momentum = 0.60 × TAF enplanement CAGR FY{TAF_BASE_FY}→FY{TAF_HORIZON_FY} (incl. international) "
+         "+ 0.40 × CY2024→CY2025 enplanement growth."),
+        (f"Capacity Pressure = 0.40 × class F Load Factor ({mf.t100_window}) + 0.30 × share of departures delayed "
+         f"≥15 min + 0.30 × average taxi-out ({mf.ontime_window})."),
         "Market Scale = 0.70 × CY2025 enplanements + 0.30 × 2025 metro (CBSA) population.",
-        "Investment Opportunity Score = weighted geometric mean of the three Pillars (each floored at 1), so "
-        "weakness in any one Pillar is penalised.",
-        "Missing metrics are imputed at the median (50th percentile): this pulls the Pillar toward the middle "
-        "and can raise or lower an airport; such scores are Provisional and name the imputed metrics.",
-        f"delay_share and taxi_out are left unmeasured for airports with fewer than {MIN_ONTIME_DEPARTURES:,} "
-        "reporting-carrier departures in the On-Time window.",
+        ("Investment Opportunity Score = weighted geometric mean of the three Pillars (each floored at 1), so "
+         "weakness in any one Pillar is penalised."),
+        ("Missing metrics are imputed at the median (50th percentile): this pulls the Pillar toward the middle "
+         "and can raise or lower an airport; such scores are Provisional and name the imputed metrics."),
+        (f"delay_share and taxi_out are left unmeasured for airports with fewer than {MIN_ONTIME_DEPARTURES:,} "
+         "reporting-carrier departures in the On-Time window."),
     ]
     if mf.missing_tables:
         out.append("Snapshot tables not available, so their metrics are unmeasured for every airport: "
@@ -136,8 +153,8 @@ def rank_airports(
     # Data Confidence: the weakest listed airport sets the level (SPEC §6: the lowest level wins).
     levels = [sc.at[i, "level"] for i in shown]
     provisional = [r for r in ranked if r.provisional]
-    reasons = [f"{len(ranked) - len(provisional)} of {len(ranked)} listed airports have full Coverage "
-               f"({N_METRICS}/{N_METRICS})."] if ranked else []
+    reasons = [(f"{len(ranked) - len(provisional)} of {len(ranked)} listed airports have full Coverage "
+                f"({N_METRICS}/{N_METRICS}).")] if ranked else []
     if provisional:
         reasons.append("Provisional: " + "; ".join(
             f"{r.iata} {r.coverage.measured}/{N_METRICS} (imputed {', '.join(r.imputed_metrics)})" for r in provisional))

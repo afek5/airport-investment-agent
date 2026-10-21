@@ -32,7 +32,7 @@ def _service() -> dict:
 
 
 def _env_example_keys() -> list[str]:
-    return re.findall(r"^([A-Z][A-Z0-9_]*)=", (ROOT / ".env.example").read_text(), flags=re.M)
+    return re.findall(r"^([A-Z][A-Z0-9_]*)=", (ROOT / ".env.example").read_text(), flags=re.MULTILINE)
 
 
 # ───────────────────────────── render.yaml ─────────────────────────────
@@ -63,7 +63,7 @@ def test_blueprint_declares_every_env_var_and_keeps_secrets_out_of_git() -> None
 
 def _production_server_args() -> list[str]:
     """The uvicorn argv from the Dockerfile CMD (`sh -c "exec uvicorn …"`), as the container runs it."""
-    cmd = re.search(r"^CMD\s+(\[.*\])\s*$", (ROOT / "Dockerfile").read_text(), flags=re.M)
+    cmd = re.search(r"^CMD\s+(\[.*\])\s*$", (ROOT / "Dockerfile").read_text(), flags=re.MULTILINE)
     assert cmd, "Dockerfile has no exec-form CMD"
     argv = yaml.safe_load(cmd.group(1))
     assert argv[:2] == ["sh", "-c"]
