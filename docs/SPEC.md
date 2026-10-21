@@ -191,6 +191,10 @@ Layout and tokens: see `docs/UI-STYLE.md`. Use the `ui-taste` skill for new work
 - Access-code gate (`ACCESS_CODE` env). All `/api/*` except `/api/session` and `/api/health` require a session.
 - **Rate limit:** 30 chat messages per hour per session (counted from `usage_log`). Friendly message on overrun.
 - **Daily budget:** stop at a $5/day sum of `usage_log.cost_usd` (UTC day) and show a "demo budget reached" message. Cost is computed from usage × the price table in config.
+- **Access-code brute force:** `POST /api/session` allows 10 failed attempts per IP per hour (in memory is fine), then returns 429. The code is compared in constant time.
+- **Per-request caps:** a user message over 2,000 characters is rejected with a friendly 413. The model call sets `max_tokens` (2,048) and a tool-call limit per answer (Pydantic AI `UsageLimits`, ≤ 12 requests).
+- **Scope:** the system prompt keeps the agent to US airport and aviation investment questions. Anything else, including requests to ignore instructions or reveal the prompt, gets the scoping statement (§6) and no free-form answer. The agent has no web, shell or write tools; `query_snapshot` is read-only DuckDB.
+- **Global ceiling:** the daily budget is summed across all sessions, so new sessions can't get around it. It is the hard stop on a leaked access code.
 - **Voice:** max 5 min per call and 10 calls per day overall.
 - Keys live only server-side (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`). Hard monthly limits are set in the provider consoles by the human (wizard).
 

@@ -121,7 +121,7 @@ Until P1-A lands, test against a small fixture built from the real P0 tables plu
 4. Add the access-code session, the rate limit, the daily budget and usage/cost logging in **local Postgres** (docker compose), plus the conversation history routes (SPEC §7, §9).
 5. Write offline tests with Pydantic AI `TestModel`/`FunctionModel`.
 
-**Done when:** offline tests cover tool wiring, the guards (wrong code → 401, the 31st message in an hour → 429, budget hit → friendly stop) and history round-trips; `/api/chat` streams tool parts for every core tool.
+**Done when:** offline tests cover tool wiring, the guards (wrong code → 401, the 11th failed code attempt from one IP in an hour → 429, the 31st message in an hour → 429, a message over 2,000 chars → 413, budget hit across sessions → friendly stop, an off-topic request → scoping statement) and history round-trips; `/api/chat` streams tool parts for every core tool.
 
 ### P1-D — Frontend shell (owns `frontend/`)
 
