@@ -168,7 +168,7 @@ In order, each one shippable on its own:
 1. ~~Bespoke Evidence charts (pillar bars, route-mix donut).~~ **Done (2026-10-21):** Pillar bars on the Ranking, a scorecard Pillar chart and route-mix donuts (shadcn chart over Recharts), fixture tests in `frontend/tests/charts.test.tsx`; `scripts/evidence_screenshots.py` regenerates the screenshots (not committed).
 2. ~~`query_public_api`.~~ **Done (2026-10-21):** registered as a deferred tool (`DEFERRED_TOOLS`) next to the core, under the same output validator and final-message answer rule; offline tests in `backend/tests/agent/test_public_api.py`, one live run in `backend/tests/agent/test_live_public_api.py`.
 3. The voice call (SPEC §10; first verify the gpt-live-1 delegation event names in the current OpenAI docs).
-4. ~~The 5-slide deck with the `officecli` skill, using real screenshots.~~ **Done (2026-10-22):** `docs/deck.pptx`, built by `python3 scripts/build_deck.py` from the screenshots in `docs/deck/` (a saved G3 conversation in the running app, plus Evidence close-ups from `scripts/evidence_screenshots.py` fixtures, which equal the live tool results).
+4. ~~The 5-slide deck with the `officecli` skill, using real screenshots.~~ **Done (2026-10-22):** `docs/deck.pptx`, built by `python3 scripts/build_deck.py` from the screenshots in `docs/deck/`, all taken from the running app at http://localhost:8000: a saved G3 conversation, and a G1 conversation asked once in a session signed in through the access screen (one live answer, $0.057), then reopened from the Recent chats rail for the screenshots.
 
 ## 4. Human-only steps
 

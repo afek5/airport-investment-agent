@@ -3,6 +3,9 @@
 Run from the repo root:  python3 scripts/build_deck.py
 It writes an officecli batch file, creates the deck, applies the batch, then validates it.
 Every number on the slides comes from docs/examples.md or a deterministic tool result.
+All three images are screenshots of the running app (docker compose up): g3-anchorage-app.png and
+g1-new-england-app.png reopen saved G3 and G1 conversations; g1-ranking-pillars.png is the top of the
+rank_airports Evidence card from that same G1 page.
 """
 import json
 import pathlib
@@ -140,9 +143,8 @@ for i, (eb, head, body) in enumerate(flow):
         text(f"StepBody{i+1}", body, x + 0.5, 7.6, bw - 1.0, 4.3, size=16, color=mu)
 for i in range(3):
     ops.append({"command": "add", "parent": f"/slide[{slide_no}]", "type": "connector",
-                "props": {"from": f"/slide[{slide_no}]/shape[@name=Step{i+1}]",
-                          "to": f"/slide[{slide_no}]/shape[@name=Step{i+2}]",
-                          "shape": "straight", "color": INK, "lineWidth": "1.25pt", "tailEnd": "triangle"}})
+                "props": {"x": cm(M + (i + 1) * bw + i * gap), "y": cm(4.4 + 7.8 / 2), "width": cm(gap),
+                          "height": "0cm", "shape": "straight", "color": INK, "lineWidth": "1.25pt", "tailEnd": "triangle"}})
 text("EnvLabel", "EVERY TOOL RETURNS ONE ENVELOPE", M, 13.0, 20, 0.5, font=MONO, size=11, color=MUTED)
 chips = ["data", "sources + As-of Dates", "assumptions", "data_confidence", "coverage", "caveats"]
 cx = M
@@ -163,9 +165,10 @@ new_slide(3, "SCORING METHODOLOGY", "Seven percentiles, three Pillars, one score
           "the thesis is a conjunction: Martha's Vineyard has Demand Momentum 82.1 but Market Scale 28.4 and scores "
           "54.7. A missing metric is imputed at the median and the score is labelled Provisional with the imputed "
           "metrics named. Data Confidence is computed from Coverage and recency, never judged by the model. "
-          "The BOS scorecard on the right is the airport_scorecard Evidence card: Pillars 50.2, 86.1 and 95.3 give 73.1.")
-iw = 9.6
-ih = iw * 674 / 718
+          "On the right is the rank_airports Evidence card from the running app answering exam question G1 "
+          "(New England): BOS has Pillars 50.2, 86.1 and 95.3 and scores 73.1.")
+iw = 7.0
+ih = iw * 1212 / 718
 ix = W - M - iw
 lw = ix - 0.9 - M
 text("PctLabel", "PERCENTILE SCORES (0–100) ACROSS 402 PRIMARY AIRPORTS  ·  WEIGHTS IN BRACKETS", M, 4.2, lw, 0.5,
@@ -188,53 +191,51 @@ text("FormulaText", "exp( Σ w × ln( max(Pillar, 1) ) )", M + 0.6, 12.25, lw - 
 text("FormulaNote", "A weak Pillar drags the score down: MVY has Demand Momentum 82.1 but Market Scale 28.4, and scores 54.7.",
      M + 0.6, 13.1, lw - 1.2, 1.15, size=14, color=MUTED)
 box("ShotFrame", ix - 0.05, 4.2 - 0.05, iw + 0.1, ih + 0.1, fill=CARD, line=HAIR)
-add("picture", {"src": "docs/deck/bos-scorecard-pillars.png", "x": cm(ix), "y": cm(4.2),
+add("picture", {"src": "docs/deck/g1-ranking-pillars.png", "x": cm(ix), "y": cm(4.2),
                 "width": cm(iw), "height": cm(ih),
-                "alt": "BOS scorecard Evidence card: Investment Opportunity Score 73.1, national rank 11 of 399, Pillar bars Demand Momentum 50.2, Capacity Pressure 86.1, Market Scale 95.3"})
-text("ShotCap", "airport_scorecard Evidence for BOS: Pillars 50.2 / 86.1 / 95.3 give 73.1, national rank 11 of 399.",
-     ix, 4.2 + ih + 0.25, iw, 1.5, size=12, color=MUTED)
-qw = (W - 2 * M - 2 * 0.76) / 3
+                "alt": "rank_airports Evidence card in the running app for New England: Pillar bars per airport against the median (50), and BOS first with score 73.1 and Pillars 50.2, 86.1, 95.3"})
+text("ShotCap", "Running app, G1 Mission panel: BOS Pillars 50.2 / 86.1 / 95.3 give 73.1.",
+     ix, 4.2 + ih + 0.2, iw, 1.6, size=12, color=MUTED)
+qw3 = (lw - 2 * 0.6) / 3
 facts = [
     ("PROVISIONAL SCORE", WARN, "A missing metric is imputed at the median (50) and named; Coverage shows as e.g. 5 of 7."),
     ("DATA CONFIDENCE", OK, "Computed, never judged by the model: High at 7 of 7 Coverage; Medium if provisional, scenario or ad hoc."),
     ("WHAT IT IS NOT", INK, "Screens candidates; does not prove profitability. No project cost, gate utilisation or revenue data."),
 ]
 for i, (lab, col, body) in enumerate(facts):
-    x = M + i * (qw + 0.76)
-    text(f"FactLab{i+1}", lab, x, 15.0, qw, 0.5, font=MONO, size=11, color=col)
-    text(f"FactBody{i+1}", body, x, 15.55, qw, 2.3, size=14, color=INK)
+    x = M + i * (qw3 + 0.6)
+    text(f"FactLab{i+1}", lab, x, 14.8, qw3, 0.5, font=MONO, size=11, color=col)
+    text(f"FactBody{i+1}", body, x, 15.35, qw3, 2.5, size=13, color=INK)
+qw = (W - 2 * M - 2 * 0.76) / 3
 
 # ---------------------------------------------------------------- 4. Demo
 new_slide(4, "DEMO  ·  THE RUNNING APP", "Exam questions answered, evidence alongside",
-          "Left: the running app at 1440 by 900 in light theme, reopening a saved, verified conversation for exam "
-          "question G3, the long-haul share at Anchorage. The answer leads with 2.7% of scheduled passenger "
-          "departures, then the passenger-weighted 6.2% and cargo-inclusive 29.5% variants, with the 3,000-mile "
-          "definition stated. The Mission panel shows the route_mix call and its Evidence: donuts and the table "
-          "behind them, Data Confidence High. Right: the Pillar bars of the rank_airports Evidence card for G1, "
-          "New England, rendered from the same tool result as the recorded answer: BOS 73.1, BGR 72.4, BTV 71.9.")
-sw = 19.0
+          "Both screenshots are the running app at 1440 by 900 in light theme, reopening saved conversations from "
+          "the Recent chats rail. Left, exam question G3: 2.7% of Anchorage's scheduled passenger departures are "
+          "Long-haul Flights, with the passenger-weighted 6.2% and cargo-inclusive 29.5% variants and the "
+          "3,000-mile definition stated; the Mission panel shows the route_mix call and its donuts and table, "
+          "Data Confidence High. Right, exam question G1: New England ranked by Investment Opportunity Score, "
+          "BOS 73.1, BGR 72.4 and BTV 71.9 leading 16 ranked airports; the Mission panel shows the rank_airports "
+          "call, the Pillar bars and the score table, Data Confidence Medium because HVN and PSM are Provisional.")
+gap4 = 0.8
+sw = (W - 2 * M - gap4) / 2
 sh = sw * 1800 / 2880
-box("AppFrame", M - 0.05, 4.1 - 0.05, sw + 0.1, sh + 0.1, fill=CARD, line=HAIR)
-add("picture", {"src": "docs/deck/g3-anchorage-app.png", "x": cm(M), "y": cm(4.1),
-                "width": cm(sw), "height": cm(sh),
-                "alt": "The running app answering 'What is the percentage of long haul flights out of Anchorage airport?': 2.7% of class F departures are Long-haul Flights; the Mission panel shows route_mix donuts at 2.7%, 6.2% and 29.5% and Data Confidence High"})
-text("AppCap", "G3 · Anchorage: 2.7% of scheduled passenger departures are Long-haul (6.2% passenger-weighted, "
-               "29.5% cargo-inclusive); route_mix Evidence in the Mission panel.",
-     M, 4.1 + sh + 0.25, sw, 1.5, size=12, color=MUTED)
-rx = M + sw + 1.0
-rw = W - M - rx
-text("RLabel", "G1 · NEW ENGLAND RANKING", rx, 4.1, rw, 0.5, font=MONO, size=11, color=MUTED)
-ph = 9.6
-pw = ph * 718 / 1005
-px = rx
-box("RankFrame", px - 0.05, 4.8 - 0.05, pw + 0.1, ph + 0.1, fill=CARD, line=HAIR)
-add("picture", {"src": "docs/deck/g1-ranking-pillars.png", "x": cm(px), "y": cm(4.8),
-                "width": cm(pw), "height": cm(ph),
-                "alt": "rank_airports Evidence card for New England: Pillar bars per airport for BOS, BGR, BTV, HVN, PWM, PVD, PSM, BDL, MVY and MHT against the median (50)"})
-text("RankCap", "“Which airports in New England are strong candidates for terminal expansion?” Pillar bars from "
-                "the rank_airports Evidence card, rendered from the same tool result: BOS 73.1, BGR 72.4 and "
-                "BTV 71.9 lead 16 ranked airports.",
-     rx, 4.8 + ph + 0.3, rw, 2.6, size=12, color=MUTED)
+shots = [
+    ("G3 · ANCHORAGE LONG-HAUL SHARE", "docs/deck/g3-anchorage-app.png",
+     "The running app answering 'What is the percentage of long haul flights out of Anchorage airport?': 2.7% of class F departures are Long-haul Flights; the Mission panel shows route_mix donuts at 2.7%, 6.2% and 29.5% and Data Confidence High",
+     "2.7% of scheduled passenger departures are Long-haul (6.2% passenger-weighted, 29.5% cargo-inclusive). "
+     "Mission panel: route_mix donuts and table, Data Confidence High."),
+    ("G1 · NEW ENGLAND RANKING", "docs/deck/g1-new-england-app.png",
+     "The running app answering 'Which airports in New England are strong candidates for terminal expansion?': a ranking table led by BOS 73.1, BGR 72.4 and BTV 71.9; the Mission panel shows rank_airports Pillar bars and the score table, Data Confidence Medium",
+     "BOS 73.1, BGR 72.4 and BTV 71.9 lead 16 ranked airports. Mission panel: rank_airports Pillar bars "
+     "and score table, Data Confidence Medium (HVN and PSM Provisional)."),
+]
+for i, (lab, src, alt, cap) in enumerate(shots):
+    x = M + i * (sw + gap4)
+    text(f"ShotLab{i+1}", lab, x, 4.2, sw, 0.5, font=MONO, size=11, color=MUTED)
+    box(f"AppFrame{i+1}", x - 0.05, 4.9 - 0.05, sw + 0.1, sh + 0.1, fill=CARD, line=HAIR)
+    add("picture", {"src": src, "x": cm(x), "y": cm(4.9), "width": cm(sw), "height": cm(sh), "alt": alt})
+    text(f"ShotCap{i+1}", cap, x, 4.9 + sh + 0.35, sw, 2.4, size=14, color=INK)
 
 # ---------------------------------------------------------------- 5. Tradeoffs, limitations, next steps
 new_slide(5, "TRADEOFFS AND NEXT STEPS", "Tradeoffs, limits and next steps",
