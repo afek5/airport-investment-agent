@@ -88,7 +88,7 @@ The model **never computes a score or invents a number**:
 
 **Voice as a shell over the same agent (ADR 0004)**, so voice cannot disagree with text on a number. Designed, not built.
 
-**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render plus Neon blueprint is prepared but not deployed: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** the voice call, a slide deck, DB1B and ASPM data.
+**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render plus Neon blueprint is prepared but not deployed: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** the voice call, DB1B and ASPM data. A 5-slide deck is in `docs/deck.pptx`.
 
 ## 7. Limitations and next steps
 

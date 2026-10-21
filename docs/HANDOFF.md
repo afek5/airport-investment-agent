@@ -64,7 +64,7 @@ P3 Ship (parallel): E Docs (DESIGN.md, README, examples) · F Deploy prepared (r
                           │
 LIVE Deploy verified live (public URL answers G3)
                           │
-P4 Deferred, only after P3 is green, in this order: charts (done) · query_public_api (done) · voice call · deck
+P4 Deferred, only after P3 is green, in this order: charts (done) · query_public_api (done) · voice call · deck (done)
 ```
 
 ## 2. Contracts (written in P0)
@@ -168,7 +168,7 @@ In order, each one shippable on its own:
 1. ~~Bespoke Evidence charts (pillar bars, route-mix donut).~~ **Done (2026-10-21):** Pillar bars on the Ranking, a scorecard Pillar chart and route-mix donuts (shadcn chart over Recharts), fixture tests in `frontend/tests/charts.test.tsx`; `scripts/evidence_screenshots.py` regenerates the screenshots (not committed).
 2. ~~`query_public_api`.~~ **Done (2026-10-21):** registered as a deferred tool (`DEFERRED_TOOLS`) next to the core, under the same output validator and final-message answer rule; offline tests in `backend/tests/agent/test_public_api.py`, one live run in `backend/tests/agent/test_live_public_api.py`.
 3. The voice call (SPEC §10; first verify the gpt-live-1 delegation event names in the current OpenAI docs).
-4. The 5-slide deck with the `officecli` skill, using real screenshots.
+4. ~~The 5-slide deck with the `officecli` skill, using real screenshots.~~ **Done (2026-10-22):** `docs/deck.pptx`, built by `python3 scripts/build_deck.py` from the screenshots in `docs/deck/` (a saved G3 conversation in the running app, plus Evidence close-ups from `scripts/evidence_screenshots.py` fixtures, which equal the live tool results).
 
 ## 4. Human-only steps
 
