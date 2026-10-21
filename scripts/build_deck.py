@@ -4,8 +4,9 @@ Run from the repo root:  python3 scripts/build_deck.py
 It writes an officecli batch file, creates the deck, applies the batch, then validates it.
 Every number on the slides comes from docs/examples.md or a deterministic tool result.
 All three images are screenshots of the running app (docker compose up) at 1440x900, light theme:
-g3-anchorage-app.png is G3 asked from its starter chip in a session signed in through the access screen,
-scrolled to the question once the answer and Evidence finished; g1-new-england-app.png reopens a saved
+g3-anchorage-app.png is G3 asked once from its starter chip in a session signed in through the access screen
+(app built from the final code, ligature fix included), then reopened from its saved conversation in a second
+signed-in session and scrolled to the question, so the hover-expanded rail is not in the shot; g1-new-england-app.png reopens a saved
 G1 conversation; g1-ranking-pillars.png is the top of the rank_airports Evidence card from that G1 page.
 """
 import json
@@ -211,8 +212,8 @@ qw = (W - 2 * M - 2 * 0.76) / 3
 
 # ---------------------------------------------------------------- 4. Demo
 new_slide(4, "DEMO  ·  THE RUNNING APP", "Exam questions answered, evidence alongside",
-          "Both screenshots are the running app at 1440 by 900 in light theme: G3 as its answer finished, and G1 "
-          "reopened from the Recent chats rail. Left, exam question G3: 2.7% of Anchorage's scheduled passenger departures are "
+          "Both screenshots are the running app at 1440 by 900 in light theme: G3 asked from its starter chip and "
+          "reopened from its saved conversation, and G1 reopened from the Recent chats rail. Left, exam question G3: 2.7% of Anchorage's scheduled passenger departures are "
           "Long-haul Flights, with the passenger-weighted 6.2% and cargo-inclusive 29.5% variants and the "
           "3,000-mile definition stated; the Mission panel shows the route_mix call and its donuts and table, "
           "Data Confidence High. Right, exam question G1: New England ranked by Investment Opportunity Score, "
