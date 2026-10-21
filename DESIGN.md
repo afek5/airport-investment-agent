@@ -19,11 +19,12 @@ The score is a **screening signal**: it shows which airports deserve a closer lo
     │     resolve_airports · rank_airports · airport_scorecard · compare_airports
     │     route_mix · unmet_demand · query_snapshot (read-only SQL)
     ├── Live Signals ──► BTS SODA · DOT Airfare SODA · FAA NAS Status
+    │     live_traffic · od_demand · live_delays · query_public_api (whitelisted SoQL)
     └── suggest_followups              Postgres: sessions, history, usage and cost
  Offline: ingest/ scripts ──► FAA / BTS / Census downloads ──► data/snapshot/
 ```
 
-One container serves API and frontend. Every tool returns one envelope (`data`, `sources` with As-of Dates, `assumptions`, `data_confidence`, `coverage`, `caveats`, `ad_hoc`), and the Evidence panel shows each tool's `data` as a table, so every figure in an answer can be checked.
+One container serves API and frontend. Every tool returns one envelope (`data`, `sources` with As-of Dates, `assumptions`, `data_confidence`, `coverage`, `caveats`, `ad_hoc`), and the Evidence panel shows each tool's `data` as a table, so every figure in an answer can be checked. Charts above the tables plot the same tool fields: Pillar bars on the Ranking, a Pillar chart on the scorecard, and route-mix donuts.
 
 ## 3. Data
 
@@ -39,7 +40,7 @@ All scoring runs on the **Snapshot**: Parquet tables built by script from public
 | `metro_population` | Census Population Estimates, V2025 | Jul 1, 2025 | metro population |
 | `runway_capacity` | FAA Capacity Profiles, hand-coded | 2014–2019 | bad-weather capacity drop |
 
-Live Signals, fetched at question time: BTS traffic (SODA `r495-tyji`), DOT Airfare Report (SODA `tfrh-tu9e`), FAA NAS Status.
+Live Signals, fetched at question time: BTS traffic (SODA `r495-tyji`), DOT Airfare Report (SODA `tfrh-tu9e`), FAA NAS Status. `query_public_api` runs ad-hoc SoQL on those two BTS/DOT datasets and the DOT city-pair table (`yj5y-b2ir`), for fare or market history the Snapshot lacks.
 
 ## 4. Scoring methodology
 
@@ -69,7 +70,7 @@ The language model (Claude Sonnet 5.5, run by Pydantic AI):
 
 - **Interprets the question and chooses tools.** It maps "New England" to six states, resolves "LA" to LAX through `resolve_airports`, and turns "growth matters twice as much" into a weight override.
 - **Handles ambiguity openly**, stating an Assumption and offering the alternative, then **explains** in a fixed shape: answer and table, drivers, Assumptions, Data Confidence with As-of Dates.
-- **Writes ad-hoc SQL** through `query_snapshot` when no fixed tool fits: SELECT/WITH only, read-only, 200 rows, 5 seconds, shown in the Trace, labelled ad hoc with Data Confidence at most Medium.
+- **Writes ad-hoc queries** when no fixed tool fits: read-only SQL over the Snapshot through `query_snapshot` (SELECT/WITH only, 200 rows, 5 seconds), or, last, live SoQL through `query_public_api` (three whitelisted datasets, clause bodies only, at most 500 rows). Both are shown in the Trace and labelled ad hoc with Data Confidence at most Medium.
 
 The model **never computes a score or invents a number**:
 
@@ -87,7 +88,7 @@ The model **never computes a score or invents a number**:
 
 **Voice as a shell over the same agent (ADR 0004)**, so voice cannot disagree with text on a number. Designed, not built.
 
-**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render plus Neon blueprint is prepared but not deployed: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** Evidence charts, live SoQL, the voice call, a slide deck, DB1B and ASPM data.
+**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render plus Neon blueprint is prepared but not deployed: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** the voice call, a slide deck, DB1B and ASPM data.
 
 ## 7. Limitations and next steps
 

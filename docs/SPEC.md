@@ -133,7 +133,7 @@ Every tool returns the same envelope (Pydantic model `ToolResult`):
 | `od_demand(iata, top_n=10)` | **LIVE** DOT Airfare SODA `data.transportation.gov/resource/tfrh-tu9e.json` | O&D pax/day, fares, carrier share |
 | `live_delays(iatas?)` | **LIVE** FAA NAS Status XML | an empty result means "no active delay" |
 | `query_snapshot(sql)` | escape hatch: read-only SQL over Snapshot views | SELECT/WITH only (reject anything else via a parser check plus a DuckDB read-only connection), 200-row cap, 5 s timeout; the data dictionary is in the system prompt; `ad_hoc=true`, Data Confidence ≤ Medium; SQL shown in the trace |
-| `query_public_api(dataset, select?, where?, group?, order?, limit≤500)` | **deferred (P4)**: escape hatch for live SoQL, used only when no core tool answers | whitelist: `bts_airport_month` (r495-tyji), `dot_airfare_pairs` (tfrh-tu9e), `dot_airfare_city_pairs` (yj5y-b2ir); clause bodies only (`$`, `&`, `;`, `#`, `\|>` refused), limit clamped to 1–500; live-client timeout/retry/cache; a Socrata 400 goes back to the model as a retry; `ad_hoc=true`, Data Confidence ≤ Medium; SoQL shown in the trace |
+| `query_public_api(dataset, select?, where?, group?, order?, limit≤500)` | **built (P4, after core)**: escape hatch for live SoQL, used only when no core tool answers | whitelist: `bts_airport_month` (r495-tyji), `dot_airfare_pairs` (tfrh-tu9e), `dot_airfare_city_pairs` (yj5y-b2ir); clause bodies only (`$`, `&`, `;`, `#`, `\|>` refused), limit clamped to 1–500; live-client timeout/retry/cache; a Socrata 400 goes back to the model as a retry; `ad_hoc=true`, Data Confidence ≤ Medium; SoQL shown in the trace |
 | `suggest_followups(questions[2..3])` | UI renders clickable chips | called last in every analytic answer |
 
 Live tools: 8 s timeout, one retry, in-process TTL cache (15 min), and a graceful error envelope ("live source unavailable; answering from Snapshot as of …").
@@ -182,7 +182,7 @@ Layout and tokens: see `docs/UI-STYLE.md`. Use the `ui-taste` skill for new work
 - **Right Mission panel**, three collapsible sections:
   - **Progress:** the live tool steps of the current answer.
   - **Evidence (core):** a renderer per tool `data` type, built from **plain, well-typeset tables**: the ranking (with Coverage and a provisional mark), the scorecard metric table, the comparison table, the route-mix shares, and unmet demand as three labelled blocks (Observed evidence, Forecast gap, Scenario) plus "What the data can't tell us". Plus a Data Confidence badge, the Assumptions and caveats list, and As-of/window chips.
-  - **Evidence (deferred until after the core is green):** bespoke charts such as pillar bars, a route-mix donut and a scorecard pillar chart.
+  - **Evidence charts (P4, built after the core was green):** Pillar bars on the Ranking, a scorecard Pillar chart and route-mix donuts, drawn above the tables from the same tool `data`.
   - **Trace:** the raw tool calls (name, args, duration, ad_hoc SQL).
   - The panel opens by itself on desktop after the first tool call. On a phone it is a sheet.
 - Voice "Call" button in the composer (stretch §10).

@@ -1,6 +1,6 @@
 # Airport Investment Intelligence Agent
 
-A chat agent that helps an airport-modernisation investor find US airports worth a closer look for terminal expansion. You ask a question in plain English. The agent picks deterministic analysis tools, runs them over a dated Snapshot of public FAA, BTS and Census data plus three live government APIs, and answers with a table, the drivers behind it, its Assumptions, and a Data Confidence level. Every number in an answer comes from a tool result. The language model never computes a score.
+A chat agent that helps an airport-modernisation investor find US airports worth a closer look for terminal expansion. You ask a question in plain English. The agent picks deterministic analysis tools, runs them over a dated Snapshot of public FAA, BTS and Census data plus three live government APIs, and answers with a table, the drivers behind it, its Assumptions, and a Data Confidence level. The Mission panel beside the chat shows each tool's result as tables and charts (Pillar bars, a scorecard Pillar chart, route-mix donuts) and the raw tool calls. Every number in an answer comes from a tool result. The language model never computes a score.
 
 - **How it works and why:** [`DESIGN.md`](DESIGN.md) (scoring methodology, tradeoffs, where AI is used, limitations).
 - **Example answers:** [`docs/examples.md`](docs/examples.md) has the full transcripts of the six acceptance questions from a live run.
@@ -32,6 +32,7 @@ Only `ANTHROPIC_API_KEY` and `ACCESS_CODE` are required. The other variables in 
 | What is the unmet flight demand in SFO airport and why? | Constraint Evidence, Forecast Gap, a labelled Spill Scenario, what the data can't tell us |
 | *(follow-up)* What if growth matters twice as much? | Re-ranking with overridden Pillar Weights |
 | How many flights left BOS for Europe last summer? | Ad-hoc read-only SQL over the Snapshot, labelled as such |
+| What was the average fare BOS–LAX by quarter? | `query_public_api`: live SoQL on a whitelisted DOT dataset, labelled ad hoc, query shown in the Trace |
 
 ## Live demo: local-only
 
@@ -75,7 +76,7 @@ Open <http://localhost:3000>. Without `DATABASE_URL` the backend keeps sessions 
 
 | Command | What it does |
 |---|---|
-| `make test` | Offline tests: scoring unit tests, golden-tool recomputation, API guards, frontend renderers. No API spend. |
+| `make test` | Offline tests: scoring unit tests, golden-tool recomputation, API guards, frontend renderers and charts. No API spend. |
 | `make test-live` | Live end-to-end runs of the six golden questions against real Claude, with the number-grounding check. Spends money. |
 | `make e2e` | Playwright smoke: access code, ask the Anchorage question, Evidence renders, reload keeps the conversation. Spends one answer. |
 | `make build` / `make up` | Build the production image / run app + Postgres at :8000. |
@@ -98,11 +99,12 @@ The raw downloads land in `data/raw/` (gitignored), and the downloaders skip mon
 ```
 backend/app/analytics/   deterministic scoring and analysis tools (pure functions over the Snapshot)
 backend/app/agent/       the Pydantic AI agent: tool wrappers and the system prompt
-backend/app/live/        clients for the three live APIs (BTS, DOT, FAA NAS Status)
+backend/app/live/        clients for the three live APIs (BTS, DOT, FAA NAS Status) and query_public_api's guarded SoQL
 backend/app/api/         FastAPI routes and the spend and abuse guards
-frontend/                Next.js static chat UI with the Mission panel (Progress, Evidence, Trace)
+frontend/                Next.js static chat UI with the Mission panel (Progress, Evidence tables and charts, Trace)
 ingest/                  scripts that build the Snapshot from public sources
 data/snapshot/           the committed Snapshot
 tests/e2e/               golden-question tests, live grounding tests, Playwright smoke
+scripts/                 setup wizard, query_public_api smoke call, Evidence chart screenshots (no spend)
 docs/                    spec, ADRs, research notes, example transcripts
 ```

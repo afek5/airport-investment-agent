@@ -9,7 +9,7 @@ import os
 import pytest
 from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
-from app.agent import USAGE_LIMITS, agent
+from app.agent import USAGE_LIMITS, agent, answer_text
 from tests.grounding import ungrounded_numbers
 
 Q = "What was the average fare BOS–LAX by quarter?"
@@ -23,7 +23,7 @@ async def test_fare_history_uses_query_public_api_and_is_grounded(real_snapshot)
     msgs = result.all_messages()
     calls = [p for m in msgs if isinstance(m, ModelResponse) for p in m.parts if isinstance(p, ToolCallPart)]
     returns = [p for m in msgs if isinstance(m, ModelRequest) for p in m.parts if isinstance(p, ToolReturnPart)]
-    answer = result.output
+    answer = answer_text(result.new_messages())  # what the chat shows: the final message only
     print("\n--- calls ---")
     for c in calls:
         print(c.tool_name, c.args_as_dict())
@@ -40,6 +40,9 @@ async def test_fare_history_uses_query_public_api_and_is_grounded(real_snapshot)
     assert ok, f"no ad-hoc rows came back: {content}"
     assert all(c["data_confidence"]["level"] in ("Medium", "Low") for c in content)
     assert "ad hoc" in answer.lower() or "ad-hoc" in answer.lower(), "answer not labelled ad hoc"
+    assert any(c.tool_name == "suggest_followups" for c in calls), "suggest_followups not called"
+    assert "data confidence" in answer.lower()
+    assert answer.count("**Data Confidence") <= 1, "the answer is not shown exactly once"
 
     payloads = [r.content if isinstance(r.content, (dict, str)) else r.content.model_dump() for r in returns]
     missing = ungrounded_numbers(answer, payloads)
