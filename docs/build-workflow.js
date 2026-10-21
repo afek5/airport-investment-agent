@@ -83,11 +83,17 @@ const FIX_HINTS = {
   P2: `Root-cause hint for ungrounded-number failures: the model mis-copies large integers (e.g. 30516426 → "30,516426"), and prompt rules alone have not stopped it. Fix it structurally so the model copies digit-grouped strings instead of formatting digits itself. An interrupted earlier fixer already started this and left uncommitted work in the tree: backend/app/agent/display.py (groups numbers ≥ 10,000 into strings before each model request), backend/tests/agent/test_display.py, and edits to backend/app/agent/__init__.py, prompt.py and tests/e2e/test_live_golden.py. Review it, finish it and keep what is sound. Other packages are running concurrently in the same tree (P3-E owns DESIGN.md and README.md; P3-F owns render.yaml, the Dockerfile and deploy notes), so don't edit those files. To prove the fix: run the G4 live test 3 times (-k g4), then the full chain make test && make test-live && make e2e once, and report each result.`,
 }
 
+// Extra fix-prompt text, only for packages that hadn't run a fix round when the run was first resumed:
+// an unchanged prompt for earlier packages keeps their cached results valid.
+const FIX_EXTRA = {
+  P2: FIX_HINTS.P2 + '\n\n' + SPEND,
+  'P3-E': SPEND,
+  'P3-F': SPEND,
+}
+
 const fixPrompt = (pkg, failures) => `You are the builder for package ${pkg} (see the "${pkg}" section of docs/HANDOFF.md). An independent verifier found these failures against its "Done when" criterion:
 ${failures.map(f => '- ' + f).join('\n')}
-${FIX_HINTS[pkg] ? '\n' + FIX_HINTS[pkg] + '\n' : ''}
-${SPEND}
-
+${FIX_EXTRA[pkg] ? '\n' + FIX_EXTRA[pkg] + '\n' : ''}
 Fix each one at the root cause, re-run the checks that prove it, commit and push (afek5 only), and return the report (the HANDOFF §0 format).`
 
 // Build → verify → up to 2 fix rounds for one package. Returns {pkg, report, verdict}.
