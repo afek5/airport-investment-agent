@@ -136,7 +136,8 @@ new_slide(2, "APPROACH AND ARCHITECTURE", "From public data to an answer you can
           "are fetched at question time and never change a score. Deterministic tools compute every score, share and "
           "Forecast Gap. The Pydantic AI agent on Claude Sonnet 5.5 only picks tools, states Assumptions and explains. "
           "The chat shows the answer, and the Mission panel shows each tool's data as tables and charts so every "
-          "figure can be checked. Every tool returns the same envelope, and a live number-grounding test fails if an "
+          "figure can be checked. An optional voice call uses gpt-live-1 only to talk: it hands every question to "
+          "the same agent, so voice and text cannot disagree on a number. Every tool returns the same envelope, and a live number-grounding test fails if an "
           "answer quotes a number that is not in that run's tool results.")
 gap = 1.1
 bw = (W - 2 * M - 3 * gap) / 4
@@ -148,7 +149,7 @@ flow = [
     ("AGENT", "Pydantic AI agent",
      "Claude Sonnet 5.5 picks tools, states Assumptions and explains. It never computes a score."),
     ("CHAT + EVIDENCE", "The answer and its proof",
-     "Next.js chat. The Mission panel shows Progress, Evidence tables and charts, and Trace."),
+     "Next.js chat, or a voice call over the same agent. The Mission panel shows the Evidence."),
 ]
 for i, (eb, head, body) in enumerate(flow):
     x = M + i * (bw + gap)
@@ -266,14 +267,14 @@ new_slide(5, "TRADEOFFS AND NEXT STEPS", "Tradeoffs, limits and next steps",
           "instead of a hand-written agent. Limitations: the score screens and does not prove profitability; "
           "percentiles favour small, fast-growing airports, as when doubling the growth weight lifts BID and WST into "
           "the New England top 10; delay data covers only reporting carriers' domestic flights. Next: backtest the "
-          "weights against past terminal projects, add gate utilisation and ASPM data, schedule Snapshot refreshes, "
-          "and build the designed voice call.")
+          "weights against past terminal projects, add gate utilisation and ASPM data, and schedule Snapshot refreshes. "
+          "Voice is a shell over the same agent: one brain, at the cost of a short pause while the numbers are pulled.")
 cols = [
     ("TRADEOFFS", MUTED, INK, [
         ("Snapshot + Live Signals", "Reproducible scores and a demo that survives API outages; the cost is staleness."),
         ("Geometric mean of percentiles", "A weak Pillar hurts; outliers can't stretch the scale."),
         ("Median imputation, disclosed", "Pulls a Provisional Score toward the middle, always named."),
-        ("Proven harness", "Pydantic AI runs the tool loop; no hand-written agent loop."),
+        ("Voice delegates to the agent", "One brain for voice and text; a short pause to pull the numbers."),
     ]),
     ("LIMITATIONS", WARN, WARN, [
         ("Screens, doesn't prove", "Profitability needs project cost, gate utilisation, commercial revenue and feasibility."),
@@ -284,7 +285,6 @@ cols = [
         ("Backtest the Pillar Weights", "against past terminal projects."),
         ("Add data", "gate utilisation and ASPM."),
         ("Schedule Snapshot refreshes", "so As-of Dates stay current."),
-        ("Voice call", "designed over the same agent; not built."),
     ]),
 ]
 for i, (lab, labcol, band, items) in enumerate(cols):
