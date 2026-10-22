@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Airport Intelligence \u2014 From Question to Evidence",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1320,
+      750
+    ],
+    "views": [
+      {
+        "id": "explain",
+        "label": "The main story",
+        "focus": [
+          "reviewer-ui",
+          "guarded-api",
+          "analyst-agent",
+          "analysis-tools",
+          "read-snapshot"
+        ],
+        "note": "Ask naturally. Claude chooses a tool. Python calculates. The UI shows the answer and its evidence."
+      },
+      {
+        "id": "trust",
+        "label": "Why the numbers are trustworthy",
+        "focus": [
+          "analyst-agent",
+          "analysis-tools",
+          "read-snapshot",
+          "live-government"
+        ],
+        "note": "The LLM explains tool results. Snapshot scores stay reproducible; live signals are labelled as context."
+      },
+      {
+        "id": "deploy",
+        "label": "How it runs",
+        "focus": [
+          "reviewer-ui",
+          "guarded-api",
+          "session-store",
+          "analyst-agent"
+        ],
+        "note": "One Render Docker service serves the static UI and API. Postgres persists history and recorded usage."
+      }
+    ],
+    "repository": {
+      "url": "https://github.com/afek5/airport-investment-agent",
+      "revision": "c1dcc727cc408b0a1bf57eaf12cb3049437495b7"
+    }
+  },
+  "components": [
+    {
+      "id": "reviewer-ui",
+      "type": "frontend",
+      "label": "Chat + evidence",
+      "sublabel": "Next.js \u00b7 Vercel AI SDK",
+      "pos": [
+        40,
+        320
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "01 / Ask a question",
+      "sources": [
+        {
+          "path": "frontend/components/chat/chat-session.tsx"
+        },
+        {
+          "path": "frontend/lib/voice.ts"
+        }
+      ]
+    },
+    {
+      "id": "guarded-api",
+      "type": "security",
+      "label": "FastAPI gateway",
+      "sublabel": "Session \u00b7 rate \u00b7 spend checks",
+      "pos": [
+        380,
+        320
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "02 / Admit the request",
+      "sources": [
+        {
+          "path": "backend/app/api/__init__.py"
+        },
+        {
+          "path": "backend/app/api/guards.py"
+        }
+      ]
+    },
+    {
+      "id": "analyst-agent",
+      "type": "backend",
+      "label": "Claude analyst",
+      "sublabel": "Pydantic AI \u00b7 tool orchestration",
+      "pos": [
+        720,
+        320
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "03 / Choose and explain",
+      "sources": [
+        {
+          "path": "backend/app/agent/__init__.py"
+        },
+        {
+          "path": "backend/app/agent/answer.py"
+        }
+      ]
+    },
+    {
+      "id": "analysis-tools",
+      "type": "backend",
+      "label": "Python analytics",
+      "sublabel": "Rank \u00b7 compare \u00b7 routes \u00b7 demand",
+      "pos": [
+        1060,
+        320
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "04 / Calculate the answer",
+      "sources": [
+        {
+          "path": "backend/app/analytics/__init__.py"
+        },
+        {
+          "path": "backend/app/contracts.py"
+        }
+      ]
+    },
+    {
+      "id": "read-snapshot",
+      "type": "database",
+      "label": "Snapshot data",
+      "sublabel": "Read-only DuckDB + Parquet",
+      "pos": [
+        1060,
+        570
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "402 primary airports",
+      "sources": [
+        {
+          "path": "backend/app/snapshot.py"
+        },
+        {
+          "path": "data/snapshot/manifest.json"
+        }
+      ]
+    },
+    {
+      "id": "session-store",
+      "type": "database",
+      "label": "Postgres",
+      "sublabel": "Sessions \u00b7 history \u00b7 model usage",
+      "pos": [
+        380,
+        570
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "Persistent app state",
+      "sources": [
+        {
+          "path": "backend/app/db/__init__.py"
+        },
+        {
+          "path": "backend/app/db/schema.sql"
+        }
+      ]
+    },
+    {
+      "id": "live-government",
+      "type": "external",
+      "label": "Live government data",
+      "sublabel": "BTS \u00b7 DOT \u00b7 FAA NAS APIs",
+      "pos": [
+        720,
+        80
+      ],
+      "size": [
+        220,
+        92
+      ],
+      "tag": "Context, never score inputs",
+      "sources": [
+        {
+          "path": "backend/app/live/__init__.py"
+        },
+        {
+          "path": "backend/app/live/public_api.py"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "chat-stream",
+      "from": "reviewer-ui",
+      "to": "guarded-api",
+      "label": "HTTPS / SSE",
+      "variant": "emphasis"
+    },
+    {
+      "id": "run-analyst",
+      "from": "guarded-api",
+      "to": "analyst-agent",
+      "label": "Run conversation",
+      "variant": "emphasis"
+    },
+    {
+      "id": "invoke-tools",
+      "from": "analyst-agent",
+      "to": "analysis-tools",
+      "label": "Typed tool calls",
+      "variant": "emphasis"
+    },
+    {
+      "id": "read-snapshot",
+      "from": "analysis-tools",
+      "to": "read-snapshot",
+      "label": "Read-only SQL",
+      "labelAt": [
+        1170,
+        426
+      ]
+    },
+    {
+      "id": "store-state",
+      "from": "guarded-api",
+      "to": "session-store",
+      "label": "Save / restore",
+      "labelAt": [
+        490,
+        426
+      ]
+    },
+    {
+      "id": "live-context",
+      "from": "analyst-agent",
+      "to": "live-government",
+      "label": "Guarded live tools",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "The idea in one sentence",
+      "items": [
+        "Claude decides which tool to call; deterministic Python calculates the numbers.",
+        "Answers stream back with tables, charts, sources, dates and confidence."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "What makes it trustworthy",
+      "items": [
+        "Dated FAA, BTS and Census files are validated and committed as a Snapshot.",
+        "Scores use the Snapshot; live APIs add separately labelled current context."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Small deployment, shared engine",
+      "items": [
+        "One Render container: static UI + FastAPI; Postgres stores app state.",
+        "Keys stay server-side. Optional OpenAI voice delegates to the same analyst."
+      ]
+    }
+  ]
+}

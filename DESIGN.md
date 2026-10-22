@@ -12,7 +12,7 @@ The score is a **screening signal**: it shows which airports deserve a closer lo
  Browser: Next.js chat (Vercel AI SDK useChat) + Mission panel: Progress·Evidence·Trace
     │  POST /api/chat  (UI-message stream: text, tool calls, tool results)
     ▼
- FastAPI ── guards: access code · 30 msgs/h · $5/day · 2,000 chars · 12 requests/answer
+ FastAPI ── guards: access code · 30 msgs/h · configurable spend thresholds · 2,000 chars · 12 requests/answer
     ▼
  Pydantic AI agent (Claude Sonnet 5.5) ── chooses tools, explains, never computes
     ├── deterministic tools ──► DuckDB (read-only) ──► Snapshot (Parquet + manifest)
@@ -90,7 +90,7 @@ The model **never computes a score or invents a number**:
 
 **Voice as a shell over the same agent (ADR 0004).** gpt-live-1 delegates every analytic question to the Claude agent and its tools, so voice and text cannot disagree on a number, at the cost of 10–30 s of "pulling the numbers" per question. Calling tools from the voice model directly would be faster but would add a second model that could contradict the first. Calls are capped at 5 minutes and 10 a day; the OpenAI key stays on the server.
 
-**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render blueprint (web service plus Render Postgres) is prepared: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** DB1B and ASPM data. A 5-slide deck is in `docs/deck.pptx`.
+**Hosting and guards.** The live demo runs at https://airport-investment-agent-n37j.onrender.com on one Render Docker web service plus Render Postgres. It may cold-start after inactivity. Access-code sessions, 30 messages per hour per session, 10 failed code attempts per IP per hour, and recorded model-spend checks protect the demo. The Render blueprint sets a $1 daily threshold and a $2 total threshold. Local Docker Compose remains available with the reviewer's own key. Voice audio is billed separately by OpenAI. **Cut:** DB1B and ASPM data. A 6-slide deck, including the architecture diagram, is in `docs/deck.pptx`; `docs/architecture.html` is the interactive companion.
 
 ## 7. Limitations and next steps
 
