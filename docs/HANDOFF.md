@@ -158,6 +158,8 @@ Per SPEC §12. DESIGN.md runs ≤ 4 pages for a Deloitte reviewer and states pla
 
 ### LIVE — Deploy, outcome 2: **verified live** (runs only after the human finishes wizard stage 5)
 
+> **Decision updated (2026-10-22): deploy on Render after all,** with one account: `render.yaml` now includes a free Render Postgres (no Neon), Render generates `SESSION_SECRET`, and the hosted demo runs with `DAILY_BUDGET_USD=1`. The human pastes only `ANTHROPIC_API_KEY` and `ACCESS_CODE` (wizard stage 3). The earlier decision follows for the record.
+>
 > **Decision (2026-10-21): the human chose local-only.** LIVE does not run. The README states "local-only" plainly: the reviewer runs `docker compose up` with their own key. It keeps the prepared Render + Neon deploy steps as an optional section, with no live URL.
 
 **Done when:** `RENDER_URL` in `.env` serves the access screen; `/api/health` is ok; G3 answers correctly through the public URL with the access code; the README holds the URL. If the human deploy took more than 45 min or failed, record "local-only" in the README instead. That counts as an accepted outcome, reported as status `blocked` with the reason.

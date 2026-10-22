@@ -36,22 +36,27 @@ Only `ANTHROPIC_API_KEY` and `ACCESS_CODE` are required. The other variables in 
 
 ## Live demo: local-only
 
-This build is local-only: there is no hosted URL. Run it with `docker compose up` as above, using your own `ANTHROPIC_API_KEY` and an `ACCESS_CODE` you choose in `.env`. The Render + Neon deploy below is prepared but optional and has not been run. A deployed copy would be gated by its access code and would stop answering for the day once it reaches its daily model budget.
+This build is local-only: there is no hosted URL. Run it with `docker compose up` as above, using your own `ANTHROPIC_API_KEY` and an `ACCESS_CODE` you choose in `.env`. The Render deploy below is prepared but optional. A deployed copy would be gated by its access code and would stop answering for the day once it reaches its daily model budget.
 
-## Deploy (optional: Render + Neon)
+## Deploy (Render, free)
 
-Production is one free Render web service built from the repo's `Dockerfile`, with Postgres on Neon's free tier. [`render.yaml`](render.yaml) is the Render Blueprint: Docker runtime, free plan, health check on `/api/health`, and every variable from `.env.example`. Secrets are declared with `sync: false`, so Render asks for them when the Blueprint is applied and they never enter git. `./scripts/setup-wizard.sh` stages 4 (Neon) and 5 (Render) walk through it.
+[`render.yaml`](render.yaml) is a Render Blueprint: one free Docker web service built from the repo's `Dockerfile`, plus one free Render Postgres (the app creates its tables on first start). One Render account is all it takes.
 
-1. **Neon.** Create a project (Postgres 16+, a region near Render's Ohio) and copy the pooled connection string. The app creates its tables on first start.
-2. **Render.** Dashboard → Blueprints → New Blueprint Instance → this repo. When asked, paste `ANTHROPIC_API_KEY`, `ACCESS_CODE`, `SESSION_SECRET` (any long random string, so sessions survive restarts) and the Neon string as `DATABASE_URL`. Leave `NEON_DATABASE_URL`, `OPENAI_API_KEY` and `RENDER_URL` blank; the app does not read them.
-3. **Check.** The service URL shows the access screen and `/api/health` returns ok. A free service sleeps when idle, so the first request after a while takes up to a minute.
+1. Sign up at [render.com](https://render.com) with GitHub and give Render access to this repository.
+2. **Dashboard → New → Blueprint →** pick this repo. Render reads `render.yaml` and asks for two values:
+   - `ANTHROPIC_API_KEY`: your key. Set a monthly spend limit for it in the Anthropic console.
+   - `ACCESS_CODE`: the password you give reviewers.
+   Render generates `SESSION_SECRET` and wires `DATABASE_URL` to the database itself.
+3. **Apply.** The first build takes about 5–10 minutes. Then the service URL (`https://….onrender.com`) shows the access screen and `/api/health` returns ok. A free service sleeps when idle, so the first request after a while takes up to a minute.
+
+**What stops strangers spending your key:** no one can chat without the access code. Each session gets 30 messages an hour, a single IP gets 10 wrong codes an hour, and the whole deployment stops answering for the day once it has spent `DAILY_BUDGET_USD` ($1 in the Blueprint, about 30 answers), across all sessions. Render's free Postgres expires after 30 days.
 
 Two details matter in production:
 
 - **Client IP behind Render's proxy.** The per-IP limit on failed access codes (SPEC §9) must see the user's IP, not the proxy's, or one wrong guess streak locks out every user at once. The `Dockerfile` CMD runs uvicorn with `--proxy-headers --forwarded-allow-ips '*'` so the client IP comes from `X-Forwarded-For`. `backend/tests/deploy/test_deploy.py` checks both the fix and the failure it prevents.
-- **Neon connection string.** Neon's copied string carries `channel_binding=require`, a libpq-only option that asyncpg would pass to the server, which then refuses to connect. The app drops it, and turns off asyncpg's statement cache on a `-pooler` host, since Neon's PgBouncer runs in transaction mode.
+- **Hosted Postgres URLs.** The app drops libpq-only options such as `channel_binding=require` that asyncpg would pass to the server, and turns off asyncpg's statement cache on a `-pooler` host (PgBouncer in transaction mode), so a pooled URL from another provider also works.
 
-To run the production image locally the way Render runs it (the compose Postgres stands in for Neon):
+To run the production image locally the way Render runs it (the compose Postgres stands in for Render's):
 
 ```bash
 docker compose up -d db

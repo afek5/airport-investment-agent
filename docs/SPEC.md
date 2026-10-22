@@ -26,7 +26,7 @@ Deloitte Digital FDE take-home ("Airport Investment Intelligence Agent", 24 h, p
 - **Wire protocol:** Pydantic AI `VercelAIAdapter.dispatch_request(request, agent=agent, sdk_version=7)`.
 - **Frontend:** Next.js (App Router, TypeScript, `output: "export"`, static), Vercel AI SDK `ai@7` + `@ai-sdk/react` `useChat`, AI Elements (shadcn-based) components, Tailwind v4, Recharts (via shadcn chart) for pillar charts. Styling per `docs/UI-STYLE.md`.
 - **Serving:** one container. FastAPI serves `/api/*` and the static Next export at `/`.
-- **DB:** Postgres 16. docker compose locally, Neon free tier in prod (`DATABASE_URL`).
+- **DB:** Postgres 16. docker compose locally, Render free Postgres in prod (`DATABASE_URL`, wired by `render.yaml`).
 - **Hosting:** Render free web service from the Dockerfile (`render.yaml` blueprint).
 - **Repo:** `afek5/airport-investment-agent`, private until submission.
 
@@ -197,7 +197,7 @@ Layout and tokens: see `docs/UI-STYLE.md`. Use the `ui-taste` skill for new work
 - **Scope:** the system prompt keeps the agent to US airport and aviation investment questions. Anything else, including requests to ignore instructions or reveal the prompt, gets the scoping statement (§6) and no free-form answer. The agent has no web, shell or write tools; `query_snapshot` is read-only DuckDB.
 - **Global ceiling:** the daily budget is summed across all sessions, so new sessions can't get around it. It is the hard stop on a leaked access code.
 - **Voice:** max 5 min per call and 10 calls per day overall.
-- Keys live only server-side (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`). Hard monthly limits are set in the provider consoles by the human (wizard).
+- Keys live only server-side (`ANTHROPIC_API_KEY`). The hosted demo sets `DAILY_BUDGET_USD=1`. Hard monthly limits are set in the provider consoles by the human (wizard).
 
 ## 10. Voice call (stretch, ADR 0004)
 
