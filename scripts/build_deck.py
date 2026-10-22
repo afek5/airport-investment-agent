@@ -3,11 +3,13 @@
 Run from the repo root:  python3 scripts/build_deck.py
 It writes an officecli batch file, creates the deck, applies the batch, then validates it.
 Every number on the slides comes from docs/examples.md or a deterministic tool result.
-All three images are screenshots of the running app (docker compose up) at 1440x900, light theme:
-g3-anchorage-app.png is G3 asked once from its starter chip in a session signed in through the access screen
-(app built from the final code, ligature fix included), then reopened from its saved conversation in a second
-signed-in session and scrolled to the question, so the hover-expanded rail is not in the shot; g1-new-england-app.png reopens a saved
-G1 conversation; g1-ranking-pillars.png is the top of the rank_airports Evidence card from that G1 page.
+All three images are screenshots of the LIVE demo (LIVE_URL, Render) taken on 2026-10-22 with Playwright at
+1440x900 (device scale 2), light theme, then reduced to 256-colour PNGs. Each question was asked exactly once
+from its starter chip in a fresh browser session signed in through the real access screen (two live answers in
+all, about $0.06 each against the demo's $2 cap). Each shot waits for the follow-up chips, so the answer is complete
+and the Mission panel Evidence is drawn, keeps the mouse off the rail, and scrolls the conversation back to the question.
+g3-anchorage-app.png is G3; g1-new-england-app.png is G1 (its answer table keeps its own inner scroll at rows 6-10,
+as the live page left it); g1-ranking-pillars.png is the top of the rank_airports Evidence card on that same G1 page.
 """
 import json
 import pathlib
@@ -18,8 +20,11 @@ GROUND, CARD, INK, MUTED, HAIR = "F7F6F2", "FFFFFF", "1B1A17", "66645E", "E2E0DA
 MOM, PRE, SCA, OK, WARN = "7C69A8", "A96C4C", "5C8A6E", "1D7F53", "93600A"
 SERIF, SANS, MONO = "Georgia", "Arial", "Consolas"
 W, H, M = 33.867, 19.05, 1.5
+LIVE_URL = "https://airport-investment-agent-n37j.onrender.com"
 
-ops = [{"command": "set", "path": "/", "props": {"defaultFont": "Arial"}}]
+# The live demo URL is a real hyperlink; theme hyperlink colours keep it in the deck's ink, not default blue.
+ops = [{"command": "set", "path": "/", "props": {"defaultFont": "Arial", "theme.color.hlink": INK,
+                                                 "theme.color.folHlink": INK}}]
 slide_no = 0
 
 
@@ -67,6 +72,16 @@ def box(name, x, y, w, h, *, fill=CARD, line=HAIR, preset="rect", line_width="0.
     add("shape", p)
 
 
+def live_line(y, note):
+    """The live demo link: a mono label, the clickable URL, and a short muted note."""
+    text("LiveLabel", "LIVE DEMO", M, y, 2.9, 0.6, font=MONO, size=11, color=MUTED, valign="middle")
+    p = {"name": "LiveUrl", "text": LIVE_URL, "x": cm(M + 2.9), "y": cm(y), "width": cm(13.4), "height": cm(0.6),
+         "font": MONO, "size": "13", "color": INK, "bold": "true", "align": "left", "valign": "middle", "margin": "0",
+         "fill": "none", "line": "none", "autoFit": "none", "link": LIVE_URL}
+    add("shape", p)
+    text("LiveNote", note, M + 15.9, y, W - 2 * M - 15.9, 0.6, size=13, color=MUTED, valign="middle")
+
+
 def new_slide(n, label, title, notes):
     global slide_no
     slide_no += 1
@@ -88,7 +103,8 @@ new_slide(1, "THE PROBLEM", None,
           "Thesis. Its three clauses become the three Pillars of the Investment Opportunity Score: Demand Momentum, "
           "Capacity Pressure and Market Scale, with default weights 0.35, 0.40 and 0.25. "
           "The score is a screening signal: it shortlists airports for a closer look and does not prove a "
-          "renovation would pay off.")
+          "renovation would pay off. The agent is live on Render at the URL on the slide; the access code is "
+          "sent on request.")
 text("Hero", "Where should the next terminal go?", M, 2.1, W - 2 * M, 2.2, font=SERIF, size=44)
 text("Sub", "A chat agent that ranks the 402 US Primary Airports for terminal-modernisation investment. "
             "Deterministic tools compute every score from public FAA, BTS and Census data; the language model "
@@ -109,9 +125,10 @@ for i, (name, col, wt, clause, metrics) in enumerate(cards):
     text(f"Weight{i+1}", f"DEFAULT WEIGHT {wt}", x + 0.6, 10.0, cw - 1.2, 0.5, font=MONO, size=11, color=col)
     text(f"Clause{i+1}", f"…{clause}", x + 0.6, 10.75, cw - 1.2, 1.8, font=SERIF, size=20)
     text(f"Metrics{i+1}", metrics, x + 0.6, 12.6, cw - 1.2, 2.1, size=16, color=MUTED)
-box("Strap", M, 15.4, W - 2 * M, 1.4, fill=INK, line="none")
+box("Strap", M, 15.2, W - 2 * M, 1.4, fill=INK, line="none")
 text("StrapText", "The score screens candidates. It does not prove that a renovation would be profitable.",
-     M + 0.7, 15.4, W - 2 * M - 1.4, 1.4, size=18, color=GROUND, valign="middle")
+     M + 0.7, 15.2, W - 2 * M - 1.4, 1.4, size=18, color=GROUND, valign="middle")
+live_line(17.0, "Try it in a browser  ·  access code on request")
 
 # ---------------------------------------------------------------- 2. Approach and architecture
 new_slide(2, "APPROACH AND ARCHITECTURE", "From public data to an answer you can check",
@@ -167,10 +184,10 @@ new_slide(3, "SCORING METHODOLOGY", "Seven percentiles, three Pillars, one score
           "the thesis is a conjunction: Martha's Vineyard has Demand Momentum 82.1 but Market Scale 28.4 and scores "
           "54.7. A missing metric is imputed at the median and the score is labelled Provisional with the imputed "
           "metrics named. Data Confidence is computed from Coverage and recency, never judged by the model. "
-          "On the right is the rank_airports Evidence card from the running app answering exam question G1 "
+          "On the right is the rank_airports Evidence card from the live app answering exam question G1 "
           "(New England): BOS has Pillars 50.2, 86.1 and 95.3 and scores 73.1.")
 iw = 7.0
-ih = iw * 1212 / 718
+ih = iw * 1220 / 718
 ix = W - M - iw
 lw = ix - 0.9 - M
 text("PctLabel", "PERCENTILE SCORES (0–100) ACROSS 402 PRIMARY AIRPORTS  ·  WEIGHTS IN BRACKETS", M, 4.2, lw, 0.5,
@@ -195,8 +212,8 @@ text("FormulaNote", "A weak Pillar drags the score down: MVY has Demand Momentum
 box("ShotFrame", ix - 0.05, 4.2 - 0.05, iw + 0.1, ih + 0.1, fill=CARD, line=HAIR)
 add("picture", {"src": "docs/deck/g1-ranking-pillars.png", "x": cm(ix), "y": cm(4.2),
                 "width": cm(iw), "height": cm(ih),
-                "alt": "rank_airports Evidence card in the running app for New England: Pillar bars per airport against the median (50), and BOS first with score 73.1 and Pillars 50.2, 86.1, 95.3"})
-text("ShotCap", "Running app, G1 Mission panel: BOS Pillars 50.2 / 86.1 / 95.3 give 73.1.",
+                "alt": "rank_airports Evidence card in the live app for New England: Pillar bars per airport against the median (50), and BOS first with score 73.1 and Pillars 50.2, 86.1, 95.3"})
+text("ShotCap", "Live app, G1 Mission panel: BOS Pillars 50.2 / 86.1 / 95.3 give 73.1.",
      ix, 4.2 + ih + 0.2, iw, 1.6, size=12, color=MUTED)
 qw3 = (lw - 2 * 0.6) / 3
 facts = [
@@ -211,9 +228,10 @@ for i, (lab, col, body) in enumerate(facts):
 qw = (W - 2 * M - 2 * 0.76) / 3
 
 # ---------------------------------------------------------------- 4. Demo
-new_slide(4, "DEMO  ·  THE RUNNING APP", "Exam questions answered, evidence alongside",
-          "Both screenshots are the running app at 1440 by 900 in light theme: G3 asked from its starter chip and "
-          "reopened from its saved conversation, and G1 reopened from the Recent chats rail. Left, exam question G3: 2.7% of Anchorage's scheduled passenger departures are "
+new_slide(4, "DEMO  ·  THE LIVE APP", "Exam questions answered, evidence alongside",
+          "Both screenshots are the live demo on Render at 1440 by 900 in light theme, each question asked once "
+          "from its starter chip after signing in through the access screen. Left, exam question G3: 2.7% of "
+          "Anchorage's scheduled passenger departures are "
           "Long-haul Flights, with the passenger-weighted 6.2% and cargo-inclusive 29.5% variants and the "
           "3,000-mile definition stated; the Mission panel shows the route_mix call and its donuts and table, "
           "Data Confidence High. Right, exam question G1: New England ranked by Investment Opportunity Score, "
@@ -224,20 +242,21 @@ sw = (W - 2 * M - gap4) / 2
 sh = sw * 1800 / 2880
 shots = [
     ("G3 · ANCHORAGE LONG-HAUL SHARE", "docs/deck/g3-anchorage-app.png",
-     "The running app answering 'What is the percentage of long haul flights out of Anchorage airport?': 2.7% of class F departures are Long-haul Flights; the Mission panel shows route_mix donuts at 2.7%, 6.2% and 29.5% and Data Confidence High",
-     "2.7% of scheduled passenger departures are Long-haul (6.2% passenger-weighted, 29.5% cargo-inclusive). "
-     "Mission panel: route_mix donuts and table, Data Confidence High."),
+     "The live app answering 'What is the percentage of long haul flights out of Anchorage airport?': 2.7% of class F departures are Long-haul Flights; the Mission panel shows route_mix donuts at 2.7%, 6.2% and 29.5% and Data Confidence High",
+     "2.7% of scheduled passenger departures are Long-haul; 6.2% passenger-weighted, 29.5% cargo-inclusive. "
+     "Evidence: route_mix donuts, Data Confidence High."),
     ("G1 · NEW ENGLAND RANKING", "docs/deck/g1-new-england-app.png",
-     "The running app answering 'Which airports in New England are strong candidates for terminal expansion?': a ranking table led by BOS 73.1, BGR 72.4 and BTV 71.9; the Mission panel shows rank_airports Pillar bars and the score table, Data Confidence Medium",
-     "BOS 73.1, BGR 72.4 and BTV 71.9 lead 16 ranked airports. Mission panel: rank_airports Pillar bars "
-     "and score table, Data Confidence Medium (HVN and PSM Provisional)."),
+     "The live app answering 'Which airports in New England are strong candidates for terminal expansion?': the top 10 of 16 ranked airports, with BOS, BGR and BTV named the strongest candidates; the Mission panel shows rank_airports Pillar bars and the score table led by BOS 73.1 and BGR 72.4, Data Confidence Medium",
+     "BOS 73.1, BGR 72.4 and BTV 71.9 lead 16 ranked airports. Evidence: rank_airports Pillar bars, "
+     "Data Confidence Medium (HVN and PSM Provisional)."),
 ]
 for i, (lab, src, alt, cap) in enumerate(shots):
     x = M + i * (sw + gap4)
     text(f"ShotLab{i+1}", lab, x, 4.2, sw, 0.5, font=MONO, size=11, color=MUTED)
     box(f"AppFrame{i+1}", x - 0.05, 4.9 - 0.05, sw + 0.1, sh + 0.1, fill=CARD, line=HAIR)
     add("picture", {"src": src, "x": cm(x), "y": cm(4.9), "width": cm(sw), "height": cm(sh), "alt": alt})
-    text(f"ShotCap{i+1}", cap, x, 4.9 + sh + 0.35, sw, 2.4, size=14, color=INK)
+    text(f"ShotCap{i+1}", cap, x, 4.9 + sh + 0.3, sw, 2.0, size=14, color=INK)
+live_line(17.0, "Asked live, 2026-10-22  ·  access code on request")
 
 # ---------------------------------------------------------------- 5. Tradeoffs, limitations, next steps
 new_slide(5, "TRADEOFFS AND NEXT STEPS", "Tradeoffs, limits and next steps",
