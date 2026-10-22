@@ -8,8 +8,8 @@ All three images are screenshots of the LIVE demo (LIVE_URL, Render) taken on 20
 from its starter chip in a fresh browser session signed in through the real access screen (two live answers in
 all, about $0.06 each against the demo's $2 cap). Each shot waits for the follow-up chips, so the answer is complete
 and the Mission panel Evidence is drawn, keeps the mouse off the rail, and scrolls the conversation back to the question.
-g3-anchorage-app.png is G3; g1-new-england-app.png is G1 (its answer table keeps its own inner scroll at rows 6-10,
-as the live page left it); g1-ranking-pillars.png is the top of the rank_airports Evidence card on that same G1 page.
+g3-anchorage-app.png is G3; g1-new-england-app.png is G1, retaken after the answer-table fix (51c7439) so the table
+shows ranks 1-7 from the top; g1-ranking-pillars.png is the top of the rank_airports Evidence card on that same G1 page.
 """
 import json
 import pathlib
