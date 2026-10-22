@@ -2,7 +2,8 @@
 # Deploy notes: the "Deploy (Render)" section of README.md. One Render account is all it takes.
 #
 # You type in only two values when the Blueprint is created: ANTHROPIC_API_KEY and ACCESS_CODE
-# (`sync: false`, so they never enter git). Render generates SESSION_SECRET and wires DATABASE_URL to
+# (`sync: false`, so they never enter git). OPENAI_API_KEY is optional (also `sync: false`): leave it blank
+# and the voice call stays off. Render generates SESSION_SECRET and wires DATABASE_URL to
 # the database below.
 databases:
   - name: airport-db
@@ -29,6 +30,11 @@ services:
         sync: false
       - key: MODEL_ID
         value: anthropic:claude-sonnet-5-5
+      # OpenAI (optional, server-side only): turns on the voice call (gpt-live-1). Blank = no Call button.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: VOICE_CALLS_PER_DAY
+        value: "10"
       # Access gate: the password reviewers type. Session cookies are signed with a generated secret.
       - key: ACCESS_CODE
         sync: false

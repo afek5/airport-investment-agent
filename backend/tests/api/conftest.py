@@ -88,6 +88,10 @@ def client(store_kind: str, request: pytest.FixtureRequest, monkeypatch: pytest.
     monkeypatch.setenv("SESSION_SECRET", "test-secret")
     monkeypatch.setenv("RATE_LIMIT_PER_HOUR", "30")
     monkeypatch.setenv("DAILY_BUDGET_USD", "5")
+    monkeypatch.delenv("TOTAL_BUDGET_USD", raising=False)
+    # .env may hold a real OpenAI key; offline tests never see it (voice tests set a fake one).
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("VOICE_CALLS_PER_DAY", raising=False)
     guards.failed_attempts.reset()
     db.set_store(None)
     with TestClient(app) as c:  # the lifespan creates the store inside the client's event loop
