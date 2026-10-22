@@ -21,6 +21,7 @@ The score is a **screening signal**: it shows which airports deserve a closer lo
     ├── Live Signals ──► BTS SODA · DOT Airfare SODA · FAA NAS Status
     │     live_traffic · od_demand · live_delays · query_public_api (whitelisted SoQL)
     └── suggest_followups              Postgres: sessions, history, usage and cost
+ Voice (optional): browser ◄─WebRTC─► gpt-live-1, which delegates each question to the same agent
  Offline: ingest/ scripts ──► FAA / BTS / Census downloads ──► data/snapshot/
 ```
 
@@ -70,6 +71,7 @@ The language model (Claude Sonnet 5.5, run by Pydantic AI):
 
 - **Interprets the question and chooses tools.** It maps "New England" to six states, resolves "LA" to LAX through `resolve_airports`, and turns "growth matters twice as much" into a weight override.
 - **Handles ambiguity openly**, stating an Assumption and offering the alternative, then **explains** in a fixed shape: answer and table, drivers, Assumptions, Data Confidence with As-of Dates.
+- **Speaks, on the optional voice call.** OpenAI `gpt-live-1` only talks: it hands every analytic question to the same Claude agent in a spoken mode (120 words or fewer, figures copied from tool results), says the answer, and the full Evidence appears in the chat.
 - **Writes ad-hoc queries** when no fixed tool fits: read-only SQL over the Snapshot through `query_snapshot` (SELECT/WITH only, 200 rows, 5 seconds), or, last, live SoQL through `query_public_api` (three whitelisted datasets, clause bodies only, at most 500 rows). Both are shown in the Trace and labelled ad hoc with Data Confidence at most Medium.
 
 The model **never computes a score or invents a number**:
@@ -86,9 +88,9 @@ The model **never computes a score or invents a number**:
 
 **Proven harness, not a custom loop (ADR 0003).** Pydantic AI runs the tool loop over plain functions, and its Vercel AI adapter streams tool steps to `useChat` with no glue. The Claude Agent SDK runs a subprocess per session for built-in tools we would disable.
 
-**Voice as a shell over the same agent (ADR 0004)**, so voice cannot disagree with text on a number. Designed, not built.
+**Voice as a shell over the same agent (ADR 0004).** gpt-live-1 delegates every analytic question to the Claude agent and its tools, so voice and text cannot disagree on a number, at the cost of 10–30 s of "pulling the numbers" per question. Calling tools from the voice model directly would be faster but would add a second model that could contradict the first. Calls are capped at 5 minutes and 10 a day; the OpenAI key stays on the server.
 
-**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render blueprint (web service plus Render Postgres) is prepared: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** the voice call, DB1B and ASPM data. A 5-slide deck is in `docs/deck.pptx`.
+**Hosting and guards.** Delivered local-only (`docker compose up` with the reviewer's own key). A free Render blueprint (web service plus Render Postgres) is prepared: cheap but cold-starts; the guards above (and 10 failed access codes per IP per hour) are built for a public demo on a paid model. **Cut:** DB1B and ASPM data. A 5-slide deck is in `docs/deck.pptx`.
 
 ## 7. Limitations and next steps
 

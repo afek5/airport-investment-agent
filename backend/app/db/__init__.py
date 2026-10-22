@@ -57,6 +57,7 @@ class Store(Protocol):
     async def finish_usage(self, usage_id: int, record: UsageRecord) -> None: ...
     async def count_usage_since(self, session_id: str, kind: str, since: datetime) -> int: ...
     async def cost_since(self, since: datetime) -> float: ...
+    async def count_all_since(self, kind: str, since: datetime, model: str | None = None) -> int: ...
     async def list_conversations(self, session_id: str, limit: int = 50) -> list[dict]: ...
     async def get_conversation(self, session_id: str, conversation_id: str) -> dict | None: ...
     async def put_conversation(self, session_id: str, conversation_id: str, title: str,
@@ -111,6 +112,10 @@ class MemoryStore:
 
     async def cost_since(self, since: datetime) -> float:
         return float(sum(u["cost_usd"] for u in self.usage if u["created_at"] >= since))
+
+    async def count_all_since(self, kind: str, since: datetime, model: str | None = None) -> int:
+        return sum(1 for u in self.usage if u["kind"] == kind and u["created_at"] >= since
+                   and (model is None or u["model"] == model))
 
     async def list_conversations(self, session_id: str, limit: int = 50) -> list[dict]:
         own = [c for c in self.conversations.values() if c["session_id"] == session_id]
@@ -201,6 +206,12 @@ class PgStore:
     async def cost_since(self, since: datetime) -> float:
         return float(await self.pool.fetchval(
             "SELECT coalesce(sum(cost_usd), 0) FROM usage_log WHERE created_at >= $1", since))
+
+    async def count_all_since(self, kind: str, since: datetime, model: str | None = None) -> int:
+        """Rows of one kind across every session (the global voice-call cap), optionally of one model."""
+        return await self.pool.fetchval(
+            "SELECT count(*) FROM usage_log WHERE kind = $1 AND created_at >= $2 AND ($3::text IS NULL OR model = $3)",
+            kind, since, model)
 
     async def list_conversations(self, session_id: str, limit: int = 50) -> list[dict]:
         rows = await self.pool.fetch(

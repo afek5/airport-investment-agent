@@ -2,6 +2,7 @@
 
 Errors are JSON `{"error": <code>, "message": <friendly text>}` with the matching status:
 401 no session / wrong code, 413 message too long, 429 rate limit or too many wrong codes.
+The voice routes (/api/voice/*) live in app.api.voice and use the same guards.
 The daily budget is not an error: /api/chat streams a normal assistant message saying the demo
 budget is reached (header `x-guard: budget`), so the chat shows it like any answer.
 """
@@ -89,6 +90,7 @@ async def health() -> dict:
         },
         "db": db,
         "db_kind": db_kind,
+        "voice": voice.voice_available(),
     }
 
 
@@ -288,3 +290,10 @@ async def delete_conversation(conversation_id: str, request: Request) -> Respons
     if not await (await get_store()).delete_conversation(session_id, conversation_id):
         return _err(404, "not_found", "That conversation does not exist.")
     return Response(status_code=204)
+
+
+# ───────────────────────────── voice (SPEC §10) ─────────────────────────────
+
+from app.api import voice  # noqa: E402 - the voice routes reuse this package's guards
+
+router.include_router(voice.router)

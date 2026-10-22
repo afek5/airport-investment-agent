@@ -21,7 +21,7 @@ from app.db import asyncpg_connect_args
 from app.main import app
 
 ROOT = Path(__file__).resolve().parents[3]
-SECRETS = {"ANTHROPIC_API_KEY", "ACCESS_CODE", "SESSION_SECRET", "DATABASE_URL"}
+SECRETS = {"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "ACCESS_CODE", "SESSION_SECRET", "DATABASE_URL"}
 
 
 def _blueprint() -> dict:
@@ -58,6 +58,7 @@ def test_blueprint_declares_every_env_var_and_keeps_secrets_out_of_git() -> None
         assert "value" not in spec, key
         assert spec.get("sync") is False or spec.get("generateValue") is True or "fromDatabase" in spec, key
     assert env["ANTHROPIC_API_KEY"].get("sync") is False and env["ACCESS_CODE"].get("sync") is False
+    assert env["OPENAI_API_KEY"].get("sync") is False  # optional: blank keeps the voice call off
     for key, spec in env.items():
         if "value" in spec:  # only non-secrets carry a value in git
             assert key not in SECRETS

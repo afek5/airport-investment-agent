@@ -34,6 +34,15 @@ Only `ANTHROPIC_API_KEY` and `ACCESS_CODE` are required. The other variables in 
 | How many flights left BOS for Europe last summer? | Ad-hoc read-only SQL over the Snapshot, labelled as such |
 | What was the average fare BOS–LAX by quarter? | `query_public_api`: live SoQL on a whitelisted DOT dataset, labelled ad hoc, query shown in the Trace |
 
+## Voice call (optional)
+
+Set `OPENAI_API_KEY` in `.env` and a phone button appears in the composer. Press it, allow the microphone, and ask out loud, for example "What is the percentage of long haul flights out of Anchorage airport?". OpenAI's `gpt-live-1` handles the conversation and hands every analytic question to the same Claude agent the chat uses. While the agent works the call shows "Pulling the numbers…", then the voice reads a short spoken answer, and the full answer, with its tool steps and Evidence tables, lands in the chat as if you had typed it. A live caption shows what you said and what the voice said.
+
+- Without `OPENAI_API_KEY` there is no Call button and `/api/voice/session` answers 503. Everything else works unchanged.
+- The key stays on the server: the browser's WebRTC offer goes through `POST /api/voice/session`, which creates the session at OpenAI.
+- Caps: each call ends itself at 5:00, and the deployment allows 10 calls per UTC day across all sessions (`VOICE_CALLS_PER_DAY`). Spoken questions count toward the 30 messages an hour, the daily budget and `TOTAL_BUDGET_USD`, like typed ones. OpenAI bills voice time separately, so set a spend limit for the key in the OpenAI console.
+- Press **End** (or Enter while it has focus) to hang up. `scripts/voice_roundtrip.py` drives one real call headlessly from a spoken WAV file and saves the data-channel event log.
+
 ## Live demo
 
 **https://airport-investment-agent-n37j.onrender.com**
@@ -48,6 +57,7 @@ The demo is gated by an access code, which the author sends with the submission.
 2. **Dashboard → New → Blueprint →** pick this repo. Render reads `render.yaml` and asks for two values:
    - `ANTHROPIC_API_KEY`: your key. Set a monthly spend limit for it in the Anthropic console.
    - `ACCESS_CODE`: the password you give reviewers.
+   - `OPENAI_API_KEY` (optional): leave it blank to keep the voice call off, or paste a key to turn it on. On an existing service, add it later under **Environment**.
    Render generates `SESSION_SECRET` and wires `DATABASE_URL` to the database itself.
 3. **Apply.** The first build takes about 5–10 minutes. Then the service URL (`https://….onrender.com`) shows the access screen and `/api/health` returns ok. A free service sleeps when idle, so the first request after a while takes up to a minute.
 
@@ -108,11 +118,11 @@ The raw downloads land in `data/raw/` (gitignored), and the downloaders skip mon
 backend/app/analytics/   deterministic scoring and analysis tools (pure functions over the Snapshot)
 backend/app/agent/       the Pydantic AI agent: tool wrappers and the system prompt
 backend/app/live/        clients for the three live APIs (BTS, DOT, FAA NAS Status) and query_public_api's guarded SoQL
-backend/app/api/         FastAPI routes and the spend and abuse guards
+backend/app/api/         FastAPI routes and the spend and abuse guards; voice.py is the voice call (SPEC §10)
 frontend/                Next.js static chat UI with the Mission panel (Progress, Evidence tables and charts, Trace)
 ingest/                  scripts that build the Snapshot from public sources
 data/snapshot/           the committed Snapshot
 tests/e2e/               golden-question tests, live grounding tests, Playwright smoke
-scripts/                 setup wizard, query_public_api smoke call, Evidence chart screenshots (no spend)
+scripts/                 setup wizard, query_public_api smoke call, Evidence chart screenshots (no spend), voice round trip (spends)
 docs/                    spec, ADRs, research notes, example transcripts
 ```

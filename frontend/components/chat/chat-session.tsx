@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { MenuIcon, PanelRightIcon, RotateCwIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { Composer, type ComposerHandle } from "@/components/composer";
@@ -11,9 +11,11 @@ import { ConfidenceBadge } from "@/components/evidence/evidence-meta";
 import { chatErrorMessage, saveConversation, type ConversationSummary } from "@/lib/api";
 import { answerTextsOf, evidenceOf, followupsOf, isToolPart, lowestConfidence, stepsOf, titleFrom, type Part } from "@/lib/parts";
 import { useTimings } from "@/lib/timings";
+import type { AnalystResult } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import { MissionPanel } from "./mission-panel";
 import { StepsRow, ThoughtRow } from "./steps";
+import { CallBar, useVoiceAvailable, useVoiceCall } from "./voice-call";
 
 export const STARTERS = [
   "Which airports in New England are strong candidates for terminal expansion?",
@@ -53,7 +55,7 @@ export function ChatSession({
   onUnauthorized: () => void;
 }) {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat", credentials: "same-origin" }), []);
-  const { messages, sendMessage, regenerate, status, stop, error, clearError } = useChat({ id, messages: initialMessages, transport });
+  const { messages, setMessages, sendMessage, regenerate, status, stop, error, clearError } = useChat({ id, messages: initialMessages, transport });
   const { markSend, stepMs, elapsedMs, withTimings } = useTimings(messages, status);
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -66,12 +68,36 @@ export function ChatSession({
     if (apiErr?.statusCode === 401) onUnauthorized();
   }, [apiErr, onUnauthorized]);
 
-  // Save after every finished answer (SPEC §7: the body is the useChat UI-message array).
+  // Voice (SPEC §10): a delegated answer joins the conversation as a user question plus an assistant message
+  // carrying the analyst's tool parts, so the steps, the Evidence panel and the history treat it like a typed one.
+  const [voiceSaves, setVoiceSaves] = useState(0);
+  const onVoiceAnswer = useCallback(
+    (question: string, result: AnalystResult) => {
+      const asked = { id: `voice-${result.message_id}`, role: "user", parts: [{ type: "text", text: question }], metadata: { voice: true } };
+      const answered = {
+        id: result.message_id,
+        role: "assistant",
+        parts: result.parts,
+        metadata: { voice: true, timing: { elapsed_ms: result.elapsed_ms } },
+      };
+      setFocusedId(null);
+      setMessages((prev) => [...prev, asked as UIMessage, answered as UIMessage]);
+      setVoiceSaves((n) => n + 1);
+    },
+    [setMessages],
+  );
+  const voiceAvailable = useVoiceAvailable();
+  const voice = useVoiceCall(id, onVoiceAnswer);
+
+  // Save after every finished answer, typed or spoken (SPEC §7: the body is the useChat UI-message array).
   const prevBusy = useRef(busy);
+  const savedVoice = useRef(0);
   useEffect(() => {
     const wasBusy = prevBusy.current;
     prevBusy.current = busy;
-    if (!wasBusy || busy || !historyEnabled) return;
+    const voiceDue = voiceSaves !== savedVoice.current;
+    savedVoice.current = voiceSaves;
+    if (!historyEnabled || busy || (!wasBusy && !voiceDue)) return;
     if (!messages.some((m) => m.role === "assistant")) return;
     const t = title || titleFrom(messages);
     saveConversation(id, withTimings(messages), t)
@@ -83,7 +109,7 @@ export function ChatSession({
         if (e?.status === 401) onUnauthorized();
         else setSaveFailed(true);
       });
-  }, [busy, historyEnabled, id, messages, onSaved, onUnauthorized, title, withTimings]);
+  }, [busy, historyEnabled, id, messages, onSaved, onUnauthorized, title, voiceSaves, withTimings]);
 
   // The panel opens by itself after the first tool call of a chat (the shell keeps it closed if the user closed it).
   const hasTools = messages.some((m) => m.parts.some(isToolPart));
@@ -218,7 +244,15 @@ export function ChatSession({
         </Conversation>
 
         <div className="mx-auto w-full max-w-[808px] px-4 pb-4 md:px-6 md:pb-5">
-          <Composer ref={composer} status={status} onSubmit={ask} onStop={stop} />
+          <CallBar state={voice.state} onEnd={voice.end} onDismiss={voice.dismiss} />
+          <Composer
+            ref={composer}
+            status={status}
+            onSubmit={ask}
+            onStop={stop}
+            onCall={voiceAvailable ? voice.start : undefined}
+            callActive={voice.active}
+          />
           <p className="mt-2 text-center text-[11.5px] text-[var(--ink-muted)]">
             Scores screen candidates from public FAA and BTS data; they don&apos;t prove a renovation would pay off.
             {saveFailed ? <span className="text-[var(--warn)]"> · This chat couldn&apos;t be saved to history.</span> : null}

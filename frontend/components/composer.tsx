@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChatStatus } from "ai";
-import { ArrowUpIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon, PhoneIcon, SquareIcon } from "lucide-react";
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -11,13 +11,16 @@ export interface ComposerHandle {
   focus: () => void;
 }
 
-/** The message composer: Enter sends, Shift+Enter adds a line, the button stops a running answer. */
+/** The message composer: Enter sends, Shift+Enter adds a line, the button stops a running answer.
+ * `onCall` (only when the server offers voice) adds the Call button; it hides while a call is on. */
 export const Composer = forwardRef<ComposerHandle, {
   status: ChatStatus;
   onSubmit: (text: string) => void;
   onStop: () => void;
   disabled?: boolean;
-}>(function Composer({ status, onSubmit, onStop, disabled }, ref) {
+  onCall?: () => void;
+  callActive?: boolean;
+}>(function Composer({ status, onSubmit, onStop, disabled, onCall, callActive }, ref) {
   const [text, setText] = useState("");
   const area = useRef<HTMLTextAreaElement>(null);
   useImperativeHandle(ref, () => ({ focus: () => area.current?.focus() }), []);
@@ -67,6 +70,18 @@ export const Composer = forwardRef<ComposerHandle, {
           aria-describedby={over ? "composer-limit" : undefined}
           className="max-h-[200px] min-h-10 flex-1 resize-none bg-transparent py-2.5 text-[14px] leading-[1.45] outline-none placeholder:text-[var(--ink-muted)] focus-visible:outline-none"
         />
+        {onCall && !callActive ? (
+          <button
+            type="button"
+            onClick={onCall}
+            aria-label="Start a voice call"
+            title="Voice call (up to 5 minutes)"
+            data-testid="call-button"
+            className="grid size-10 shrink-0 place-items-center rounded-full border border-[var(--hairline-strong)] text-[var(--ink)] hover:bg-[var(--tint)]"
+          >
+            <PhoneIcon className="size-4" />
+          </button>
+        ) : null}
         {busy ? (
           <button
             type="button"
