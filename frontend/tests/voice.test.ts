@@ -292,5 +292,6 @@ describe("start() and friendly errors", () => {
     expect(callErrorMessage(new ApiError(429, "The demo's 10 voice calls for today have been used."))).toMatch(/10 voice calls/);
     expect(callErrorMessage(new ApiError(503, "Voice calls are not available on this server."))).toMatch(/not available/);
     expect(callErrorMessage(new TypeError("Failed to fetch"))).toMatch(/could not be connected/);
+    expect(callErrorMessage(Object.assign(new Error("x"), { name: "NotSupportedError" }))).toMatch(/microphone permission/);
   });
 });

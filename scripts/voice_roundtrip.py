@@ -38,6 +38,7 @@ HOOK = """
   const orig = RTCPeerConnection.prototype.createDataChannel;
   RTCPeerConnection.prototype.createDataChannel = function (label, opts) {
     const ch = orig.call(this, label, opts);
+    window.__voiceChannel = ch;
     const send = ch.send.bind(ch);
     ch.send = (data) => { rec("out", data); return send(data); };
     ch.addEventListener("message", (e) => rec("in", e.data));
@@ -45,6 +46,19 @@ HOOK = """
   };
 })();
 """
+
+
+def close_for_sure(page) -> None:
+    """Whatever happened above, the call ends with session.close (and we wait for session.closed)."""
+    page.evaluate("""async () => {
+      const ch = window.__voiceChannel;
+      const closed = () => (window.__voiceLog || []).some((e) => e.ev && e.ev.type === "session.closed");
+      if (!ch || closed()) return;
+      if (ch.readyState === "open" && !(window.__voiceLog || []).some((e) => e.ev && e.ev.type === "session.close")) {
+        ch.send(JSON.stringify({ type: "session.close" }));
+      }
+      for (let i = 0; i < 150 && !closed() && ch.readyState === "open"; i++) await new Promise((r) => setTimeout(r, 100));
+    }""")
 
 
 def redact(obj, secrets: list[str]):
@@ -101,37 +115,48 @@ def main(wav: str, out: str) -> int:
 
         started = time.monotonic()
         call_button.click()
-        log = lambda: page.evaluate("window.__voiceLog")
-        shot_thinking = False
-        spoke_answer_at = None
-        while time.monotonic() - started < MAX_CALL_S:
+        try:
+            log = lambda: page.evaluate("window.__voiceLog")
+            shot_thinking = False
+            spoke_answer_at = None
+            while time.monotonic() - started < MAX_CALL_S:
+                page.wait_for_timeout(500)
+                events = log()
+                types = [e["ev"].get("type") for e in events]
+                if "session.delegation.created" in types and not shot_thinking:
+                    page.wait_for_timeout(1500)
+                    page.screenshot(path=out_dir / "02-pulling-the-numbers.png")
+                    page.set_viewport_size({"width": 390, "height": 844})
+                    page.wait_for_timeout(300)
+                    page.screenshot(path=out_dir / "02b-in-call-390.png")
+                    page.set_viewport_size({"width": 1440, "height": 900})
+                    shot_thinking = True
+                if "session.commentary.append" in types:
+                    i = types.index("session.commentary.append")
+                    after = "".join(e["ev"].get("delta", "") for e in events[i:]
+                                    if e["ev"].get("type") == "session.output_transcript.delta")
+                    if "%" in after or "percent" in after.lower():
+                        last_delta = max(e["t_ms"] for e in events if e["ev"].get("type") == "session.output_transcript.delta")
+                        now_ms = page.evaluate("Math.round(performance.now())")
+                        spoke_answer_at = spoke_answer_at or time.monotonic()
+                        if now_ms - last_delta > 3000 or time.monotonic() - spoke_answer_at > 25:
+                            break
+                if "session.closed" in types:
+                    break
+            page.screenshot(path=out_dir / "03-answer-spoken.png")
+            end = page.get_by_test_id("call-bar").get_by_role("button", name="End", exact=True)
+            try:
+                if end.count() and end.is_enabled():
+                    end.click()  # the app sends session.close and waits for session.closed
+                expect(page.get_by_test_id("call-bar")).to_have_count(0, timeout=20_000)
+            finally:
+                close_for_sure(page)
+            duration_s = round(time.monotonic() - started, 1)
             page.wait_for_timeout(500)
             events = log()
-            types = [e["ev"].get("type") for e in events]
-            if "session.delegation.created" in types and not shot_thinking:
-                page.wait_for_timeout(1500)
-                page.screenshot(path=out_dir / "02-pulling-the-numbers.png")
-                shot_thinking = True
-            if "session.commentary.append" in types:
-                i = types.index("session.commentary.append")
-                after = "".join(e["ev"].get("delta", "") for e in events[i:]
-                                if e["ev"].get("type") == "session.output_transcript.delta")
-                if "%" in after or "percent" in after.lower():
-                    last_delta = max(e["t_ms"] for e in events if e["ev"].get("type") == "session.output_transcript.delta")
-                    now_ms = page.evaluate("Math.round(performance.now())")
-                    spoke_answer_at = spoke_answer_at or time.monotonic()
-                    if now_ms - last_delta > 3000 or time.monotonic() - spoke_answer_at > 25:
-                        break
-            if "session.closed" in types:
-                break
-        page.screenshot(path=out_dir / "03-answer-spoken.png")
-        end = page.get_by_role("button", name="End")
-        if end.count() and end.is_enabled():
-            end.click()
-        expect(page.get_by_test_id("call-bar")).to_have_count(0, timeout=20_000)
-        duration_s = round(time.monotonic() - started, 1)
-        page.wait_for_timeout(500)
-        events = log()
+        except BaseException:
+            close_for_sure(page)  # never leave a live call open
+            raise
 
         evidence = page.get_by_test_id("evidence-route_mix")
         evidence_visible = evidence.count() > 0 and evidence.first.is_visible()

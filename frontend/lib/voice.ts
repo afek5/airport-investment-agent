@@ -87,6 +87,9 @@ export function callErrorMessage(e: unknown): string {
   if (name === "NotFoundError" || name === "OverconstrainedError") {
     return "No microphone was found. Connect one, then call again.";
   }
+  if (name === "NotSupportedError" || name === "NotReadableError") {
+    return "This browser can't use the microphone right now. Check the microphone permission, then call again.";
+  }
   if (e instanceof ApiError) {
     if (e.status === 401) return "Your session ended. Enter the access code again.";
     if (e.status === 429 || e.status === 503) return e.message;

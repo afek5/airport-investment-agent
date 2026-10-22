@@ -138,7 +138,7 @@ export function CallBar({ state, onEnd, onDismiss }: { state: CallState; onEnd: 
           {LABEL[state.phase]}
         </p>
         <span className="num text-[12px] text-[var(--ink-muted)]" aria-label={`Call time ${mmss(elapsed)} of 5 minutes`}>
-          {mmss(elapsed)} <span className="opacity-60">/ {mmss(MAX_CALL_MS)}</span>
+          {mmss(elapsed)} <span className="opacity-60 max-sm:hidden">/ {mmss(MAX_CALL_MS)}</span>
         </span>
         <button
           ref={endButton}

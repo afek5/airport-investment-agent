@@ -187,10 +187,13 @@ def test_no_call_starts_once_the_budget_is_spent(client: TestClient, openai: Fak
 
 def test_analyst_runs_the_same_agent_in_spoken_mode_and_returns_chat_parts(client: TestClient):
     seen: list[str] = []
+    prompts: list[str] = []
     g3 = scripted_model()
 
     def spy(messages, info):
         seen.append(info.instructions or "")
+        prompts.extend(p.content for m in messages for p in getattr(m, "parts", [])
+                       if type(p).__name__ == "UserPromptPart")
         return g3.function(messages, info)
 
     from pydantic_ai.models.function import FunctionModel
@@ -202,7 +205,10 @@ def test_analyst_runs_the_same_agent_in_spoken_mode_and_returns_chat_parts(clien
     j = r.json()
 
     # the spoken-mode instruction rides on top of the full system prompt, on every model request
-    assert seen and all("Spoken mode" in s and "at most 120 words" in s and "Answer contract" in s for s in seen)
+    assert seen and all("Spoken mode" in s and "at most 120 words" in s and "NOT as the four-section answer" in s
+                        and "Answer contract" in s for s in seen)
+    # ...and the turn itself carries the spoken-mode note next to the question
+    assert prompts and prompts[0] == f"{G3}\n\n{voice.SPOKEN_NOTE}" and "at most 120 words" in voice.SPOKEN_NOTE
 
     # the spoken text is the final answer, and its numbers come from the route_mix result
     parts = j["parts"]
@@ -307,5 +313,7 @@ def test_analyst_failure_is_502_friendly_and_still_logged(client: TestClient):
     assert [u["kind"] for u in _usage_rows(client)] == ["voice"]
 
 
-def test_spoken_text_strips_markdown():
-    assert voice.spoken_text("**Answer:** 2.7% of\n- flights\n| a | b |\n# Head") == "Answer: 2.7% of flights Head"
+def test_spoken_text_strips_markdown_and_keeps_table_figures():
+    assert voice.spoken_text("**Answer:** 2.7% of\n- flights\n# Head") == "Answer: 2.7% of flights Head"
+    table = "| Variant | Share |\n|---|---:|\n| Passenger flights | 2.7% |\n| Cargo-inclusive | 29.5% |"
+    assert voice.spoken_text(table) == "Variant, Share. Passenger flights, 2.7%. Cargo-inclusive, 29.5%."

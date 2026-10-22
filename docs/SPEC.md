@@ -163,7 +163,7 @@ Rules for the prompt (positive phrasing):
 | `POST /api/chat` | Vercel AI data stream via `VercelAIAdapter`; requires a session; enforces guards §9; logs usage |
 | `GET /api/conversations`, `GET/PUT/DELETE /api/conversations/{id}` | history for the rail; the body is the useChat UI-message array (jsonb) |
 | `GET /api/health` | snapshot manifest summary + DB ping |
-| `POST /api/voice/session`, `POST /api/voice/analyst` | stretch §10 |
+| `GET /api/voice/status`, `POST /api/voice/session`, `POST /api/voice/analyst` | the voice call, §10 |
 
 Postgres tables: `sessions`, `conversations (id, session_id, title, created_at, updated_at, messages jsonb)`, `usage_log (session_id, conversation_id, kind chat|voice, model, input_tokens, output_tokens, cost_usd, tools jsonb, created_at)`. Migrations run at startup (plain SQL file is fine).
 
@@ -199,13 +199,31 @@ Layout and tokens: see `docs/UI-STYLE.md`. Use the `ui-taste` skill for new work
 - **Voice:** max 5 min per call and 10 calls per day overall.
 - Keys live only server-side (`ANTHROPIC_API_KEY`). The hosted demo sets `DAILY_BUDGET_USD=1` and a lifetime `TOTAL_BUDGET_USD=2` (summed over all of `usage_log`), since the key has no provider-side limit. Hard monthly limits are set in the provider consoles by the human (wizard).
 
-## 10. Voice call (stretch, ADR 0004)
+## 10. Voice call (stretch, ADR 0004) — built
 
-`gpt-live-1` over WebRTC in client-delegation mode:
-- The browser sends its SDP to `POST /api/voice/session`, and the backend calls `POST https://api.openai.com/v1/live/sessions` with `delegation: {type: "client"}`.
-- On `session.delegation.created`, the browser rebuilds the question from `session.input_transcript.delta`, then calls `POST /api/voice/analyst`. That endpoint runs the **same** Pydantic AI agent in "spoken" mode (≤ 120 words) and pushes the full tool results into the same conversation, so the Evidence panel fills.
-- The browser replies to gpt-live-1 with `session.commentary.append`.
-- Verify the event names against the OpenAI Live docs (`developers.openai.com/api/docs/guides/live-delegation`) before coding. They were reconstructed from docs, not run.
+`gpt-live-1` over WebRTC in client-delegation mode. Verified against the OpenAI Live docs on 2026-10-22 (`developers.openai.com/api/docs/guides/live-delegation`, `/realtime-webrtc`, `/live-conversations`) and by one real round trip. Code: `backend/app/api/voice.py`, `frontend/lib/voice.ts`, `frontend/components/chat/voice-call.tsx`.
+
+**Routes** (all need a session):
+
+| Route | Purpose |
+|---|---|
+| `GET /api/voice/status` | `{available, calls_left_today, max_call_s, model}`; `available` is false without `OPENAI_API_KEY`, and the Call button stays hidden. `/api/health` also reports `voice`. |
+| `POST /api/voice/session` `{sdp, conversation_id?}` | Creates the session at OpenAI from the browser's SDP offer and returns `{session_id, sdp, max_call_s}`. 503 without a key, 429 after 10 calls per UTC day across all sessions (`VOICE_CALLS_PER_DAY`) or once the daily or total budget is spent, 502 if OpenAI fails. Each created call is a `usage_log` row (kind `voice`, model `gpt-live-1`, cost 0, since OpenAI bills it). |
+| `POST /api/voice/analyst` `{conversation_id, question}` | Runs the **same** agent with the saved conversation as history and a spoken-mode instruction (at most 120 words, no tables or markdown, numbers copied from tool results, ends with "Data Confidence is <level>"). The spoken-mode note is also appended to the turn's prompt, because a rule only at the end of the system prompt was ignored live. Returns `{text, message_id, parts, tools, elapsed_ms}`: `parts` are the assistant UI-message parts in the shape the chat stream builds (step-start, `tool-*` with input and output, text). Same guards as `/api/chat`: question ≤ 2,000 chars (413), hourly rate limit counted over chat and voice rows (429), daily budget and `TOTAL_BUDGET_USD` (200 with a `guard` notice as the text). Usage is logged as kind `voice` with the Claude cost. If the browser hangs up, the agent run is cancelled. |
+
+**Server call to OpenAI:** `POST https://api.openai.com/v1/live/sessions`, `Authorization: Bearer $OPENAI_API_KEY`, body `{"session": {"model": "gpt-live-1", "instructions": "…", "delegation": {"type": "client"}}, "transport": {"type": "webrtc", "sdp": "<offer>"}}`, with no `audio.format` because the SDP negotiates it. Response 201: `{"session": {"id": "live_…"}, "transport": {"type": "webrtc", "sdp": "<answer>"}}`. The id is opaque. The voice instructions: delegate every analytic question, never say a figure the analyst did not give, keep the caller company with one "pulling the numbers" line, keep each figure with its label and in digits, and stay on US airports.
+
+**Browser:** from the Call click, `getUserMedia({audio})` → `RTCPeerConnection` with the mic tracks → data channel `oai-events` created **before** the offer → `setLocalDescription` → wait for ICE gathering (10 s cap) → POST the offer to our backend → `setRemoteDescription(answer)` → play the remote audio track. Nothing is sent before `session.started`, and `session.start` is never sent.
+
+**Events used** (data channel):
+- `session.started`: the call is live and the mm:ss timer starts; the browser ends the call itself at 5:00 (the Live API documents no maximum).
+- `session.input_transcript.delta` / `session.output_transcript.delta` (`delta`, `start_ms`, `end_ms`): appended exactly as received; they feed the live caption.
+- `session.delegation.created` (`delegation: {id, type: "delegation", target: "client"}`, `offset_ms`, no question text): the browser takes the input transcript since the previous delegation once it has been quiet for 600 ms (4 s at most), sends a quiet `session.thinking.append` progress note, and calls `/api/voice/analyst`.
+- `session.commentary.append` `{event_id, delegation_id, content}`: the analyst's spoken text for that delegation (content limited to 500 tokens; the model may paraphrase). `session.commentary.appended` / `session.thinking.appended` acknowledge by `client_event_id`, confirming the context arrived but not the playback.
+- The delegated answer joins the conversation as a user message (the transcript) plus an assistant message with the analyst's parts, so the steps, the Evidence panel and the history treat it like a typed answer.
+- There is no cancel event: hanging up aborts the analyst request, and the backend cancels the run.
+- Closing: send `session.close`, keep reading until `session.closed` (`reason`, `usage.seconds`; 15 s timeout), then close the peer connection and stop the mic tracks. `session.usage.updated` reports the running voice seconds.
+- Billing: creating a session bills 15 s of voice up front, credited against the session's duration.
 
 ## 11. Acceptance — golden questions (each must pass end-to-end)
 

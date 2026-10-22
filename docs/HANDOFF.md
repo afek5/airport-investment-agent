@@ -64,7 +64,7 @@ P3 Ship (parallel): E Docs (DESIGN.md, README, examples) · F Deploy prepared (r
                           │
 LIVE Deploy verified live (public URL answers G3)
                           │
-P4 Deferred, only after P3 is green, in this order: charts (done) · query_public_api (done) · voice call · deck (done)
+P4 Deferred, only after P3 is green, in this order: charts (done) · query_public_api (done) · voice call (done) · deck (done)
 ```
 
 ## 2. Contracts (written in P0)
@@ -169,7 +169,7 @@ Per SPEC §12. DESIGN.md runs ≤ 4 pages for a Deloitte reviewer and states pla
 In order, each one shippable on its own:
 1. ~~Bespoke Evidence charts (pillar bars, route-mix donut).~~ **Done (2026-10-21):** Pillar bars on the Ranking, a scorecard Pillar chart and route-mix donuts (shadcn chart over Recharts), fixture tests in `frontend/tests/charts.test.tsx`; `scripts/evidence_screenshots.py` regenerates the screenshots (not committed).
 2. ~~`query_public_api`.~~ **Done (2026-10-21):** registered as a deferred tool (`DEFERRED_TOOLS`) next to the core, under the same output validator and final-message answer rule; offline tests in `backend/tests/agent/test_public_api.py`, one live run in `backend/tests/agent/test_live_public_api.py`.
-3. The voice call (SPEC §10; first verify the gpt-live-1 delegation event names in the current OpenAI docs).
+3. ~~The voice call (SPEC §10; first verify the gpt-live-1 delegation event names in the current OpenAI docs).~~ **Done (2026-10-22, branch `p4/voice`):** event names checked against the OpenAI Live docs first (SPEC §10 now holds the verified API). Backend `backend/app/api/voice.py` (`/api/voice/status`, `/session`, `/analyst`), browser `frontend/lib/voice.ts` and `frontend/components/chat/voice-call.tsx` (Call button, call bar with mm:ss, captions, End). Offline tests: `backend/tests/api/test_voice.py` (mocked OpenAI, FunctionModel agent, both stores), `frontend/tests/voice.test.ts` (fake data channel, fake timers) and `voice-ui.test.tsx`. One real round trip by `scripts/voice_roundtrip.py` (spoken G3 WAV, headless Chromium): session.started → transcript → delegation → analyst with route_mix → commentary.append with the matching delegation_id → appended → "2.7%" spoken → Evidence route_mix → session.close → session.closed, 38.9 s. Two real runs showed Claude ignoring a spoken-mode rule that sat only at the end of the system prompt, so the turn now carries a short spoken-mode note as well (checked with one analyst-only call: 84 words, all three shares).
 4. ~~The 5-slide deck with the `officecli` skill, using real screenshots.~~ **Done (2026-10-22):** `docs/deck.pptx`, built by `python3 scripts/build_deck.py` from the screenshots in `docs/deck/`, all taken from the running app at http://localhost:8000: G3 retaken from the final code at 0fe5c11 (asked once from its starter chip after signing in through the access screen, $0.056, then reopened from its saved conversation for the screenshot; the chat shows grouped counts such as 1,005, matching the Evidence panel, and the row label "(c) Cargo-inclusive" as typed, not as a ligature), and a G1 conversation asked once in a session signed in through the access screen (one live answer, $0.057), then reopened from the Recent chats rail for the screenshots.
 
 ## 4. Human-only steps
