@@ -330,6 +330,9 @@ export const MessageResponse = memo(
       )}
       plugins={streamdownPlugins}
       controls={{ table: { copy: true, download: false, fullscreen: false } }}
+      // Streamdown caps tables at 300px by default and keeps that inner box scrolled to the bottom while
+      // streaming, so a 10-row ranking finished on rows 6-10. 0 means no cap: tables scroll with the chat.
+      tableMaxHeight={0}
       {...props}
     />
   ),
