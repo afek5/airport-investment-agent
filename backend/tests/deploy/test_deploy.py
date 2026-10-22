@@ -69,6 +69,7 @@ def test_blueprint_wires_its_own_free_postgres_and_a_small_daily_budget() -> Non
     assert db["plan"] == "free" and db["region"] == _service()["region"]
     assert env["DATABASE_URL"]["fromDatabase"] == {"name": db["name"], "property": "connectionString"}
     assert float(env["DAILY_BUDGET_USD"]["value"]) <= 1.0
+    assert float(env["TOTAL_BUDGET_USD"]["value"]) <= 2.0  # a lifetime stop: the key has no provider-side limit
 
 
 # ───────────────────────────── X-Forwarded-For ─────────────────────────────

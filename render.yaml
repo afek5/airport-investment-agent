@@ -34,9 +34,11 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
-      # Spend and abuse guards (SPEC §9). The hosted demo stops answering for the day at $1.
+      # Spend and abuse guards (SPEC §9). The hosted demo stops for the day at $1, and for good at $2 in total.
       - key: DAILY_BUDGET_USD
         value: "1"
+      - key: TOTAL_BUDGET_USD
+        value: "2"
       - key: RATE_LIMIT_PER_HOUR
         value: "30"
       # Postgres: Render's internal connection string for airport-db

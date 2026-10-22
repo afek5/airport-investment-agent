@@ -49,7 +49,7 @@ This build is local-only: there is no hosted URL. Run it with `docker compose up
    Render generates `SESSION_SECRET` and wires `DATABASE_URL` to the database itself.
 3. **Apply.** The first build takes about 5–10 minutes. Then the service URL (`https://….onrender.com`) shows the access screen and `/api/health` returns ok. A free service sleeps when idle, so the first request after a while takes up to a minute.
 
-**What stops strangers spending your key:** no one can chat without the access code. Each session gets 30 messages an hour, a single IP gets 10 wrong codes an hour, and the whole deployment stops answering for the day once it has spent `DAILY_BUDGET_USD` ($1 in the Blueprint, about 30 answers), across all sessions. Render's free Postgres expires after 30 days.
+**What stops strangers spending your key:** no one can chat without the access code. Each session gets 30 messages an hour, a single IP gets 10 wrong codes an hour, the whole deployment stops answering for the day once it has spent `DAILY_BUDGET_USD` ($1 in the Blueprint, about 30 answers), and stops for good once it has spent `TOTAL_BUDGET_USD` ($2), across all sessions and days. Render's free Postgres expires after 30 days.
 
 Two details matter in production:
 

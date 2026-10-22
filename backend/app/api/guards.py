@@ -40,6 +40,8 @@ MSG_RATE_LIMITED = ("You have reached the demo limit of {limit} messages an hour
 MSG_TOO_LONG = "That message is over {limit:,} characters. Please shorten it and send it again."
 MSG_BUDGET = ("The demo budget for today has been reached, so the analyst is paused until 00:00 UTC. "
               "Thanks for trying it.")
+MSG_TOTAL_BUDGET = ("This demo has used its total model budget, so the analyst is now switched off. "
+                    "Thanks for trying it.")
 MSG_NOT_CONFIGURED = "The access code is not configured on this server."
 
 
@@ -53,6 +55,15 @@ def rate_limit_per_hour() -> int:
 
 def daily_budget_usd() -> float:
     return float(os.environ.get("DAILY_BUDGET_USD") or 5)
+
+
+def total_budget_usd() -> float | None:
+    """Lifetime cap across every day and session (`TOTAL_BUDGET_USD`); unset means no lifetime cap."""
+    raw = os.environ.get("TOTAL_BUDGET_USD")
+    return float(raw) if raw else None
+
+
+EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
 
 _ephemeral_secret = secrets.token_hex(32)

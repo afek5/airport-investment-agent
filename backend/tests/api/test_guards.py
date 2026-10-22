@@ -100,6 +100,35 @@ def test_daily_budget_is_shared_across_sessions_and_stops_friendly(client: TestC
     assert len(calls) == 1  # no model call once the budget is spent
 
 
+def test_total_budget_is_a_lifetime_stop_across_days_and_sessions(client: TestClient, monkeypatch):
+    monkeypatch.setenv("TOTAL_BUDGET_USD", "0.0001")
+    monkeypatch.setenv("DAILY_BUDGET_USD", "100")  # the daily cap is nowhere near; only the lifetime cap stops it
+    calls = []
+
+    def counting(messages, info):
+        calls.append(1)
+        return "text", "An answer that costs tokens."
+
+    from tests.agent.scripted import _model
+
+    login(client)
+    with agent.override(model=_model(counting)):
+        assert client.post("/api/chat", json=body("first question")).status_code == 200
+        client.cookies.clear()
+        login(client)
+        r = client.post("/api/chat", json=body("second question"))
+    assert r.status_code == 200 and r.headers["x-guard"] == "total_budget"
+    assert text_of(r.text) == guards.MSG_TOTAL_BUDGET
+    assert len(calls) == 1
+
+
+def test_no_total_budget_means_no_lifetime_cap(monkeypatch):
+    monkeypatch.delenv("TOTAL_BUDGET_USD", raising=False)
+    assert guards.total_budget_usd() is None
+    monkeypatch.setenv("TOTAL_BUDGET_USD", "2.5")
+    assert guards.total_budget_usd() == 2.5
+
+
 def test_off_topic_request_gets_the_scoping_statement(client: TestClient):
     login(client)
     seen: list = []

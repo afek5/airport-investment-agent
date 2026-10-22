@@ -173,6 +173,9 @@ async def chat(request: Request) -> Response:
     limit = guards.rate_limit_per_hour()
     if await store.count_usage_since(session_id, "chat", guards.hour_ago()) >= limit:
         return _err(429, "rate_limited", guards.MSG_RATE_LIMITED.format(limit=limit))
+    total = guards.total_budget_usd()
+    if total is not None and await store.cost_since(guards.EPOCH) >= total:
+        return notice_stream(guards.MSG_TOTAL_BUDGET, "total_budget")
     if await store.cost_since(guards.utc_midnight()) >= guards.daily_budget_usd():
         return notice_stream(guards.MSG_BUDGET, "budget")
 

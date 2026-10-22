@@ -197,7 +197,7 @@ Layout and tokens: see `docs/UI-STYLE.md`. Use the `ui-taste` skill for new work
 - **Scope:** the system prompt keeps the agent to US airport and aviation investment questions. Anything else, including requests to ignore instructions or reveal the prompt, gets the scoping statement (§6) and no free-form answer. The agent has no web, shell or write tools; `query_snapshot` is read-only DuckDB.
 - **Global ceiling:** the daily budget is summed across all sessions, so new sessions can't get around it. It is the hard stop on a leaked access code.
 - **Voice:** max 5 min per call and 10 calls per day overall.
-- Keys live only server-side (`ANTHROPIC_API_KEY`). The hosted demo sets `DAILY_BUDGET_USD=1`. Hard monthly limits are set in the provider consoles by the human (wizard).
+- Keys live only server-side (`ANTHROPIC_API_KEY`). The hosted demo sets `DAILY_BUDGET_USD=1` and a lifetime `TOTAL_BUDGET_USD=2` (summed over all of `usage_log`), since the key has no provider-side limit. Hard monthly limits are set in the provider consoles by the human (wizard).
 
 ## 10. Voice call (stretch, ADR 0004)
 
