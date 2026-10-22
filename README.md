@@ -34,9 +34,11 @@ Only `ANTHROPIC_API_KEY` and `ACCESS_CODE` are required. The other variables in 
 | How many flights left BOS for Europe last summer? | Ad-hoc read-only SQL over the Snapshot, labelled as such |
 | What was the average fare BOS–LAX by quarter? | `query_public_api`: live SoQL on a whitelisted DOT dataset, labelled ad hoc, query shown in the Trace |
 
-## Live demo: local-only
+## Live demo
 
-This build is local-only: there is no hosted URL. Run it with `docker compose up` as above, using your own `ANTHROPIC_API_KEY` and an `ACCESS_CODE` you choose in `.env`. The Render deploy below is prepared but optional. A deployed copy would be gated by its access code and would stop answering for the day once it reaches its daily model budget.
+**https://airport-investment-agent-n37j.onrender.com**
+
+The demo is gated by an access code, which the author sends with the submission. It runs on Render's free tier, so the first request after an idle spell takes up to a minute while the service wakes. To protect the model budget it answers at most 30 messages an hour per session, stops for the day after $1 of model spend, and switches off for good after $2. To run it yourself without limits, use `docker compose up` as above with your own `ANTHROPIC_API_KEY`.
 
 ## Deploy (Render, free)
 

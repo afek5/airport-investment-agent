@@ -158,6 +158,8 @@ Per SPEC §12. DESIGN.md runs ≤ 4 pages for a Deloitte reviewer and states pla
 
 ### LIVE — Deploy, outcome 2: **verified live** (runs only after the human finishes wizard stage 5)
 
+> **LIVE verified (2026-10-22):** https://airport-investment-agent-n37j.onrender.com serves the access screen, `/api/health` is ok with `db: ok`, a missing or wrong code gets 401, and G3 through the public URL with the access code gives 2.7% / 6.2% / 29.5%, the 3,000-mile definition, the cargo-hub explanation and the route_mix Evidence (`tests/e2e/test_smoke_playwright.py` with `E2E_BASE_URL`, 1 passed).
+>
 > **Decision updated (2026-10-22): deploy on Render after all,** with one account: `render.yaml` now includes a free Render Postgres (no Neon), Render generates `SESSION_SECRET`, and the hosted demo runs with `DAILY_BUDGET_USD=1`. The human pastes only `ANTHROPIC_API_KEY` and `ACCESS_CODE` (wizard stage 3). The earlier decision follows for the record.
 >
 > **Decision (2026-10-21): the human chose local-only.** LIVE does not run. The README states "local-only" plainly: the reviewer runs `docker compose up` with their own key. It keeps the prepared Render + Neon deploy steps as an optional section, with no live URL.
